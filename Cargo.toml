@@ -3,6 +3,7 @@
 resolver = "2"
 members = [
     "crates/anarchie-rm",
+    "crates/anarchie-store",
     "crates/anarchie-cli",
 ]
 
@@ -16,8 +17,12 @@ authors = ["The anarchie contributors"]
 
 [workspace.dependencies]
 anarchie-rm = { path = "crates/anarchie-rm" }
+anarchie-store = { path = "crates/anarchie-store" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }
 thiserror = "2.0.16"
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }
+uuid = { version = "1.23.2", features = ["v4", "serde"] }
+toml = "1.1.1"
+jiff = "0.2.28"

@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use anarchie_rm::{
     Composition, ContentItem, DataValue, Item, ItemStructure,
 };
-use anyhow::{Context, Result};
+use anarchie_store::{Audit, ChangeType, Deployment, DeploymentConfig};
+use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
 
 /// A flat-file, git-native openEHR clinical data repository.
@@ -30,6 +31,79 @@ enum Command {
         /// Path to a canonical-JSON composition file.
         file: PathBuf,
     },
+    /// Scaffold a new anarchie deployment in the current (or given) directory.
+    Init {
+        /// Directory to create the deployment in (defaults to the current dir).
+        #[arg(default_value = ".")]
+        path: PathBuf,
+        /// The creating-system identity used in every version_uid.
+        #[arg(long, default_value = "anarchie.local")]
+        system_id: String,
+    },
+    /// Manage EHRs (one git repository per patient).
+    Ehr {
+        #[command(subcommand)]
+        command: EhrCommand,
+    },
+    /// Commit a composition into an EHR as a CONTRIBUTION.
+    Commit {
+        /// The EHR id to commit into.
+        ehr: String,
+        /// Path to a canonical-JSON composition file.
+        file: PathBuf,
+        /// Object id of an existing composition to create a new version of.
+        #[arg(long)]
+        object_id: Option<String>,
+        /// Committer name for the audit trail.
+        #[arg(long, default_value = "anarchie")]
+        committer: String,
+        /// Committer email for the audit trail.
+        #[arg(long, default_value = "anarchie@localhost")]
+        email: String,
+        /// Contribution description (the commit subject).
+        #[arg(long, short = 'm', default_value = "Commit composition")]
+        message: String,
+    },
+    /// Print a composition: its head version, or a specific version_uid.
+    Cat {
+        /// The EHR id.
+        ehr: String,
+        /// An object_id (head) or a full version_uid (history).
+        target: String,
+    },
+    /// Show the version history of a composition.
+    Log {
+        /// The EHR id.
+        ehr: String,
+        /// The composition object_id.
+        object_id: String,
+    },
+    /// Diff two versions of a composition.
+    Diff {
+        /// The EHR id.
+        ehr: String,
+        /// The composition object_id.
+        object_id: String,
+        /// The earlier version_tree_id.
+        from: u32,
+        /// The later version_tree_id.
+        to: u32,
+    },
+}
+
+#[derive(Subcommand)]
+enum EhrCommand {
+    /// Create a new, empty EHR and print its id.
+    New {
+        /// Committer name for the creation audit.
+        #[arg(long, default_value = "anarchie")]
+        committer: String,
+        /// Committer email for the creation audit.
+        #[arg(long, default_value = "anarchie@localhost")]
+        email: String,
+    },
+    /// List the EHRs in the deployment.
+    List,
 }
 
 fn main() -> Result<()> {
@@ -37,7 +111,119 @@ fn main() -> Result<()> {
     match cli.command {
         Command::Info { file } => info(&file),
         Command::Canonicalise { file } => canonicalise(&file),
+        Command::Init { path, system_id } => init(&path, &system_id),
+        Command::Ehr { command } => ehr(command),
+        Command::Commit {
+            ehr,
+            file,
+            object_id,
+            committer,
+            email,
+            message,
+        } => commit(&ehr, &file, object_id, &committer, &email, &message),
+        Command::Cat { ehr, target } => cat(&ehr, &target),
+        Command::Log { ehr, object_id } => log(&ehr, &object_id),
+        Command::Diff {
+            ehr,
+            object_id,
+            from,
+            to,
+        } => diff(&ehr, &object_id, from, to),
     }
+}
+
+fn open_deployment() -> Result<Deployment> {
+    let cwd = std::env::current_dir().context("determining current directory")?;
+    Deployment::open(&cwd).context("opening anarchie deployment")
+}
+
+fn init(path: &PathBuf, system_id: &str) -> Result<()> {
+    let config = DeploymentConfig::new(system_id);
+    let deployment = Deployment::init(path, config).context("initialising deployment")?;
+    println!("Initialised anarchie deployment at {}", deployment.root().display());
+    println!("  system_id: {}", deployment.config().system_id);
+    Ok(())
+}
+
+fn ehr(command: EhrCommand) -> Result<()> {
+    let deployment = open_deployment()?;
+    match command {
+        EhrCommand::New { committer, email } => {
+            let audit = Audit::now(committer, email, ChangeType::Creation, "Create EHR");
+            let repo = deployment.create_ehr(&audit).context("creating EHR")?;
+            println!("{}", repo.ehr_id());
+            Ok(())
+        }
+        EhrCommand::List => {
+            for id in deployment.list_ehrs().context("listing EHRs")? {
+                println!("{id}");
+            }
+            Ok(())
+        }
+    }
+}
+
+fn commit(
+    ehr_id: &str,
+    file: &PathBuf,
+    object_id: Option<String>,
+    committer: &str,
+    email: &str,
+    message: &str,
+) -> Result<()> {
+    let deployment = open_deployment()?;
+    let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
+    let composition = load(file)?;
+    let change_type = if object_id.is_some() {
+        ChangeType::Modification
+    } else {
+        ChangeType::Creation
+    };
+    let audit = Audit::now(committer, email, change_type, message);
+    let outcome = repo
+        .commit_composition(composition, object_id, &audit)
+        .context("committing composition")?;
+    println!("Committed {}", outcome.version_uid);
+    println!("  object_id:       {}", outcome.object_id);
+    println!("  commit:          {}", outcome.commit_sha);
+    println!("  contribution_id: {}", outcome.contribution_id);
+    Ok(())
+}
+
+fn cat(ehr_id: &str, target: &str) -> Result<()> {
+    let deployment = open_deployment()?;
+    let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
+    // A version_uid has the form object_id::system_id::version_tree_id.
+    let body = if target.contains("::") {
+        repo.cat_version(target).context("reading version")?
+    } else {
+        repo.cat_head(target).context("reading head version")?
+    };
+    print!("{body}");
+    if !body.ends_with('\n') {
+        println!();
+    }
+    Ok(())
+}
+
+fn log(ehr_id: &str, object_id: &str) -> Result<()> {
+    let deployment = open_deployment()?;
+    let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
+    for entry in repo.log(object_id).context("reading history")? {
+        println!("{}  {}  {}", entry.version_uid, entry.time_committed, entry.subject);
+        println!("  commit {}", entry.commit_sha);
+    }
+    Ok(())
+}
+
+fn diff(ehr_id: &str, object_id: &str, from: u32, to: u32) -> Result<()> {
+    if from == 0 || to == 0 {
+        bail!("version_tree_id is 1-based; v0 does not exist");
+    }
+    let deployment = open_deployment()?;
+    let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
+    print!("{}", repo.diff(object_id, from, to).context("diffing versions")?);
+    Ok(())
 }
 
 fn load(file: &PathBuf) -> Result<Composition> {

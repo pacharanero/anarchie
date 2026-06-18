@@ -41,14 +41,15 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** a durable, versioned, inspectable store - without validation or query yet.
 
-- [ ] `anarchie init` - scaffold a deployment.
-- [ ] Repo-per-EHR layout, working-tree-holds-head convention.
-- [ ] `anarchie commit <comp.json>` - write canonical JSON + `git commit` as a `CONTRIBUTION`.
-- [ ] `version_uid` assignment and the contribution manifest.
-- [ ] `anarchie cat`, `anarchie log` (head via filesystem, history via git).
-- [ ] `anarchie diff v1 v2` - git diff + a structural layer.
+- [x] `anarchie init` - scaffold a deployment.
+- [x] Repo-per-EHR layout, working-tree-holds-head convention.
+- [x] `anarchie commit <comp.json>` - write canonical JSON + `git commit` as a `CONTRIBUTION`.
+- [x] `version_uid` assignment and the contribution manifest.
+- [x] `anarchie cat`, `anarchie log` (head via filesystem, history via git).
+- [x] `anarchie diff v1 v2` - git diff + a structural layer.
 
-**Learning milestone:** does the CONTRIBUTION-as-commit mapping feel natural in practice, and does git stay legible?
+**Learning milestone:** does the CONTRIBUTION-as-commit mapping feel natural in practice, and does git stay legible? *Yes - the commit graph reads cleanly: each contribution is one commit carrying `anarchie-contribution-id` / `anarchie-change-type` / `anarchie-system-id` trailers, `git log -- <path>` is the version history, and because canonical JSON is byte-stable a re-commit of identical content diffs to just the `version_uid` bump. The `anarchie-store` crate shells out to the system `git` (no libgit2), keeping the binary light and the repo an ordinary git repo. Open question deferred to Phase 4: the contribution manifest omits its own commit sha (a commit cannot contain its own hash); the contribution-to-commit link is the trailer, resolved at read time.*
+
 
 ---
 

@@ -66,11 +66,14 @@ pub mod tags {
     rm_type_marker!(TerminologyId, "TERMINOLOGY_ID");
     rm_type_marker!(ArchetypeId, "ARCHETYPE_ID");
     rm_type_marker!(TemplateId, "TEMPLATE_ID");
+    rm_type_marker!(HierObjectId, "HIER_OBJECT_ID");
     rm_type_marker!(CodePhrase, "CODE_PHRASE");
     rm_type_marker!(PartyRef, "PARTY_REF");
     rm_type_marker!(LocatableRef, "LOCATABLE_REF");
     rm_type_marker!(Archetyped, "ARCHETYPED");
     rm_type_marker!(Composition, "COMPOSITION");
+    rm_type_marker!(Ehr, "EHR");
+    rm_type_marker!(EhrStatus, "EHR_STATUS");
     rm_type_marker!(EventContext, "EVENT_CONTEXT");
     rm_type_marker!(History, "HISTORY");
     rm_type_marker!(Activity, "ACTIVITY");

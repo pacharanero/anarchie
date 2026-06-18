@@ -27,6 +27,24 @@ pub enum UidBasedId {
     ObjectVersionId { value: String },
 }
 
+/// `HIER_OBJECT_ID`: a hierarchical object identifier, used as a standalone
+/// (monomorphic) field where the class is fixed, e.g. `EHR.ehr_id`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HierObjectId {
+    #[serde(rename = "_type", default)]
+    pub ty: Ty<tags::HierObjectId>,
+    pub value: String,
+}
+
+impl HierObjectId {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self {
+            ty: Ty::default(),
+            value: value.into(),
+        }
+    }
+}
+
 /// `TERMINOLOGY_ID`: identifies a terminology such as `SNOMED-CT`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TerminologyId {
