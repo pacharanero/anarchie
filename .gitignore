@@ -4,3 +4,7 @@
 # Backup/editor files
 **/*.rs.bk
 *.pdb
+
+# Zensical docs build output and local venv
+/site
+/.venv-docs

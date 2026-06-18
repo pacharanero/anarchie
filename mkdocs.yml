@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+site_name: anarchie
+site_url: https://pacharanero.github.io/anarchie
+site_description: A local-first, git-native, flat-file openEHR clinical data repository
+
+# repo
+repo_url: https://github.com/pacharanero/anarchie
+repo_name: anarchie
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: zensical
+  variant: modern
+  features:
+  - content.code.copy
+  - content.action.edit # Edit this page
+  - content.action.view  # View source of this page
+
+  palette:
+
+    # Follows OS preference
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: lucide/sun-moon
+        name: Switch to light mode
+
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: lucide/sun
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: lucide/moon
+        name: Switch to system preference
+
+nav:
+  - Home: index.md
+  - Walkthrough:
+      - Overview: walkthrough/index.md
+      - Getting Started: walkthrough/getting-started.md
+      - The Reference Model: walkthrough/reference-model.md
+      - The Git-backed Store: walkthrough/the-store.md
+      - Inspecting the Files: walkthrough/inspecting-the-files.md
+  - Why Build This?:
+      - Why anarchie?: why/why-anarchie.md
+      - Why git?: why/why-git.md
+  - Commands:
+      - anarchie info: commands/info.md
+      - anarchie canonicalise: commands/canonicalise.md
+      - anarchie init: commands/init.md
+      - anarchie ehr: commands/ehr.md
+      - anarchie commit: commands/commit.md
+      - anarchie cat: commands/cat.md
+      - anarchie log: commands/log.md
+      - anarchie diff: commands/diff.md
+  - Reference:
+      - On-disk Format: reference/on-disk-format.md
+      - Versioning and Git: reference/versioning-and-git.md
+      - Roadmap: reference/roadmap.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.keys
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
