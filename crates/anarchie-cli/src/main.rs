@@ -7,7 +7,8 @@ use std::path::PathBuf;
 use anarchie_rm::{
     Composition, ContentItem, DataValue, Item, ItemStructure,
 };
-use anarchie_store::{Audit, ChangeType, Deployment, DeploymentConfig};
+use anarchie_store::{Audit, ChangeType, Deployment, DeploymentConfig, StoreError};
+use anarchie_validate::{Opt, ValidationReport};
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand};
 
@@ -63,6 +64,25 @@ enum Command {
         /// Contribution description (the commit subject).
         #[arg(long, short = 'm', default_value = "Commit composition")]
         message: String,
+        /// Skip validation and commit even if the composition is nonconformant.
+        #[arg(long)]
+        no_validate: bool,
+    },
+    /// Validate a composition against the RM and, optionally, a template.
+    Validate {
+        /// Path to a canonical-JSON composition file.
+        file: PathBuf,
+        /// A registered template id to validate against (otherwise RM only).
+        #[arg(long)]
+        template: Option<String>,
+        /// Emit the validation report as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Manage registered Operational Templates (the schema).
+    Template {
+        #[command(subcommand)]
+        command: TemplateCommand,
     },
     /// Print a composition: its head version, or a specific version_uid.
     Cat {
@@ -106,6 +126,17 @@ enum EhrCommand {
     List,
 }
 
+#[derive(Subcommand)]
+enum TemplateCommand {
+    /// Register an Operational Template (anarchie OPT JSON) as the schema.
+    Add {
+        /// Path to an anarchie OPT JSON file.
+        file: PathBuf,
+    },
+    /// List the registered template ids.
+    List,
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
@@ -120,7 +151,14 @@ fn main() -> Result<()> {
             committer,
             email,
             message,
-        } => commit(&ehr, &file, object_id, &committer, &email, &message),
+            no_validate,
+        } => commit(&ehr, &file, object_id, &committer, &email, &message, no_validate),
+        Command::Validate {
+            file,
+            template,
+            json,
+        } => validate(&file, template.as_deref(), json),
+        Command::Template { command } => template(command),
         Command::Cat { ehr, target } => cat(&ehr, &target),
         Command::Log { ehr, object_id } => log(&ehr, &object_id),
         Command::Diff {
@@ -170,6 +208,7 @@ fn commit(
     committer: &str,
     email: &str,
     message: &str,
+    no_validate: bool,
 ) -> Result<()> {
     let deployment = open_deployment()?;
     let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
@@ -180,14 +219,86 @@ fn commit(
         ChangeType::Creation
     };
     let audit = Audit::now(committer, email, change_type, message);
-    let outcome = repo
-        .commit_composition(composition, object_id, &audit)
-        .context("committing composition")?;
+    let result = if no_validate {
+        repo.commit_composition_unchecked(composition, object_id, &audit)
+    } else {
+        repo.commit_composition(composition, object_id, &audit)
+    };
+    let outcome = match result {
+        Ok(outcome) => outcome,
+        Err(StoreError::Invalid(report)) => {
+            eprintln!("Rejected: composition failed validation");
+            print_report(&report);
+            bail!("{} validation error(s)", report.error_count());
+        }
+        Err(err) => return Err(anyhow::Error::new(err).context("committing composition")),
+    };
     println!("Committed {}", outcome.version_uid);
     println!("  object_id:       {}", outcome.object_id);
     println!("  commit:          {}", outcome.commit_sha);
     println!("  contribution_id: {}", outcome.contribution_id);
     Ok(())
+}
+
+fn validate(file: &PathBuf, template_id: Option<&str>, json: bool) -> Result<()> {
+    let composition = load(file)?;
+    let opt = match template_id {
+        Some(id) => {
+            let deployment = open_deployment()?;
+            let opt = deployment
+                .get_template(id)
+                .context("loading template")?
+                .ok_or_else(|| anyhow::anyhow!("template `{id}` is not registered"))?;
+            Some(opt)
+        }
+        None => None,
+    };
+    let report = anarchie_validate::validate(&composition, opt.as_ref());
+    if json {
+        println!("{}", serde_json::to_string_pretty(&report)?);
+    } else {
+        print_report(&report);
+        if report.valid {
+            println!("valid");
+        }
+    }
+    if report.error_count() > 0 {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+fn template(command: TemplateCommand) -> Result<()> {
+    let deployment = open_deployment()?;
+    match command {
+        TemplateCommand::Add { file } => {
+            let json = fs::read_to_string(&file)
+                .with_context(|| format!("reading {}", file.display()))?;
+            let opt = Opt::from_json(&json)
+                .with_context(|| format!("parsing {} as an anarchie OPT", file.display()))?;
+            let id = deployment.add_template(&opt).context("registering template")?;
+            println!("Registered template {id}");
+            Ok(())
+        }
+        TemplateCommand::List => {
+            for id in deployment.list_templates().context("listing templates")? {
+                println!("{id}");
+            }
+            Ok(())
+        }
+    }
+}
+
+fn print_report(report: &ValidationReport) {
+    for violation in &report.violations {
+        println!(
+            "  [{}] {} ({})\n        {}",
+            violation.severity.as_str(),
+            violation.rm_path,
+            violation.constraint,
+            violation.message
+        );
+    }
 }
 
 fn cat(ehr_id: &str, target: &str) -> Result<()> {

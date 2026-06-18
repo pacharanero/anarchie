@@ -9,6 +9,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anarchie_rm::{Composition, Ehr, EhrStatus, UidBasedId};
+use anarchie_validate::Opt;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -229,6 +230,7 @@ impl Deployment {
             system_id: self.config.system_id.clone(),
             path,
             git,
+            templates_dir: self.templates_dir(),
         })
     }
 
@@ -269,6 +271,7 @@ impl Deployment {
             system_id: self.config.system_id.clone(),
             path: path.clone(),
             git: Git::open(path),
+            templates_dir: self.templates_dir(),
         })
     }
 }
@@ -280,6 +283,7 @@ pub struct EhrRepo {
     system_id: String,
     path: PathBuf,
     git: Git,
+    templates_dir: PathBuf,
 }
 
 impl EhrRepo {
@@ -295,15 +299,67 @@ impl EhrRepo {
         format!("compositions/{object_id}/composition.json")
     }
 
-    /// Commit a composition as a new version. If `object_id` is `Some`, this is
-    /// a modification of that versioned object; otherwise a new object is
-    /// created. Returns the assigned `version_uid` and commit metadata.
+    /// Load a registered Operational Template from the deployment's shared
+    /// `templates/` directory, if one is registered under `template_id`.
+    fn load_template(&self, template_id: &str) -> Result<Option<Opt>> {
+        let path = self
+            .templates_dir
+            .join(format!("{template_id}.opt.json"));
+        if !path.exists() {
+            return Ok(None);
+        }
+        let json = fs::read_to_string(&path).map_err(|source| StoreError::Io {
+            path: path.clone(),
+            source,
+        })?;
+        Ok(Some(Opt::from_json(&json)?))
+    }
+
+    /// Commit a composition as a new version, validating it first. If
+    /// `object_id` is `Some`, this is a modification of that versioned object;
+    /// otherwise a new object is created. The composition is checked against the
+    /// Reference Model (always) and its claimed Operational Template (if one is
+    /// registered); a composition with validation errors is rejected and
+    /// nothing is written. Returns the assigned `version_uid` and commit
+    /// metadata.
     pub fn commit_composition(
+        &self,
+        composition: Composition,
+        object_id: Option<String>,
+        audit: &Audit,
+    ) -> Result<CommitOutcome> {
+        self.commit_composition_with(composition, object_id, audit, true)
+    }
+
+    /// Commit a composition *without* validating it. For tooling that has
+    /// already validated, or for deliberately storing known-nonconformant data.
+    pub fn commit_composition_unchecked(
+        &self,
+        composition: Composition,
+        object_id: Option<String>,
+        audit: &Audit,
+    ) -> Result<CommitOutcome> {
+        self.commit_composition_with(composition, object_id, audit, false)
+    }
+
+    fn commit_composition_with(
         &self,
         mut composition: Composition,
         object_id: Option<String>,
         audit: &Audit,
+        validate: bool,
     ) -> Result<CommitOutcome> {
+        if validate {
+            let template = match composition.archetype_details.template_id.as_ref() {
+                Some(template_id) => self.load_template(&template_id.value)?,
+                None => None,
+            };
+            let report = anarchie_validate::validate(&composition, template.as_ref());
+            if report.error_count() > 0 {
+                return Err(StoreError::Invalid(report));
+            }
+        }
+
         let object_id = object_id.unwrap_or_else(|| Uuid::new_v4().to_string());
         let rel = Self::composition_rel(&object_id);
         let abs = self.path.join(&rel);

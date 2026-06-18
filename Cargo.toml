@@ -3,6 +3,9 @@
 resolver = "2"
 members = [
     "crates/anarchie-rm",
+    "crates/anarchie-aom",
+    "crates/anarchie-opt",
+    "crates/anarchie-validate",
     "crates/anarchie-store",
     "crates/anarchie-cli",
 ]
@@ -17,6 +20,9 @@ authors = ["The anarchie contributors"]
 
 [workspace.dependencies]
 anarchie-rm = { path = "crates/anarchie-rm" }
+anarchie-aom = { path = "crates/anarchie-aom" }
+anarchie-opt = { path = "crates/anarchie-opt" }
+anarchie-validate = { path = "crates/anarchie-validate" }
 anarchie-store = { path = "crates/anarchie-store" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }

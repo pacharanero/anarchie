@@ -42,6 +42,12 @@ pub enum StoreError {
     #[error("malformed clinical content: {0}")]
     Rm(#[from] anarchie_rm::RmError),
 
+    #[error("composition failed validation with {} error(s)", .0.error_count())]
+    Invalid(anarchie_validate::ValidationReport),
+
+    #[error("template error: {0}")]
+    Opt(#[from] anarchie_validate::OptError),
+
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 

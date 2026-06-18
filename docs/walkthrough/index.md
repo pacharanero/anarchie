@@ -10,6 +10,8 @@ By the end you will have:
 - committed a clinical Composition as an audited openEHR `CONTRIBUTION`,
 - committed a second version and watched the version history grow,
 - reconstructed an older version and diffed two versions,
+- registered an Operational Template and watched non-conformant data get
+  rejected at commit time,
 - and inspected the entire store with `ls`, `cat`, `jq`, and `git log` - no
   `anarchie` required to read it back.
 
@@ -41,6 +43,12 @@ By the end you will have:
     ---
 
     Read the whole store with plain Unix tools, exactly as designed.
+
+-   :material-shield-check:{ .lg .middle } __[Validation and Templates](validation-and-templates.md)__
+
+    ---
+
+    Register a template and let `anarchie` reject invalid data at the door.
 
 </div>
 

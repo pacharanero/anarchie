@@ -10,6 +10,7 @@ mod config;
 mod deployment;
 mod error;
 mod git;
+mod template;
 
 pub use config::{DeploymentConfig, IndexConfig, TerminologyConfig};
 pub use deployment::{

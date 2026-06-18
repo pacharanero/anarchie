@@ -57,14 +57,14 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** reject invalid data at the door; become a real CDR rather than a JSON folder.
 
-- [ ] `anarchie-aom` - constraint types (Archetype Object Model).
-- [ ] `anarchie-opt` - parse a flattened Operational Template into an AOM tree.
-- [ ] `anarchie template add` - register templates as the schema.
-- [ ] `anarchie-validate` - RM + OPT tree-walk producing structured violations.
-- [ ] Wire validation into the commit path (invalid → rejected).
-- [ ] Cross-check harness against Archie (JVM as a *test-time* oracle only).
+- [x] `anarchie-aom` - constraint types (Archetype Object Model).
+- [x] `anarchie-opt` - parse a flattened Operational Template into an AOM tree.
+- [x] `anarchie template add` - register templates as the schema.
+- [x] `anarchie-validate` - RM + OPT tree-walk producing structured violations.
+- [x] Wire validation into the commit path (invalid → rejected).
+- [ ] Cross-check harness against Archie (JVM as a *test-time* oracle only). *Deferred to a later iteration: it needs the JVM toolchain and a curated conformance corpus, and is independent of the validator's own design.*
 
-**Learning milestone:** can a pure-Rust validator agree with Archie on the conformance test corpus? This is the project's biggest risk and biggest learning.
+**Learning milestone:** can a pure-Rust validator agree with Archie on the conformance test corpus? This is the project's biggest risk and biggest learning. *Partly answered, partly deferred. The architecture that emerged: RM validation walks the **typed** Reference Model tree (`anarchie-rm` structs) checking invariants that hold for every Composition (CODE_PHRASE completeness, ELEMENT value-XOR-null_flavour, DV_QUANTITY `magnitude_status`, DV_PROPORTION kind/denominator), while OPT validation walks the **canonical JSON** guided by the AOM constraint tree - matching `C_COMPLEX_OBJECT` children by `archetype_node_id`, enforcing occurrences / existence / cardinality, and applying leaf constraints (`C_DV_QUANTITY` units + magnitude range, `C_CODE_PHRASE` terminology + code set, `C_STRING` value list, `C_DV_ORDINAL`). The key insight: the AOM names RM attributes as **strings** that map directly onto JSON keys, so the OPT walk over `serde_json::Value` is dramatically simpler than trying to reflect over typed enums - the typed tree is right for universal invariants, the JSON tree is right for archetype-specific constraints. The Archie cross-check (the actual corpus-agreement question) is deferred; what is proven now is that the validator catches real breaches end-to-end (an out-of-range systolic is rejected at `anarchie commit` with a precise openEHR path) and that valid data round-trips clean. Operational Templates are anarchie's own native flattened-JSON form for now; ingesting `.opt` XML from Archetype Designer is future work.*
 
 ---
 

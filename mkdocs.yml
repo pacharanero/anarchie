@@ -54,6 +54,7 @@ nav:
       - The Reference Model: walkthrough/reference-model.md
       - The Git-backed Store: walkthrough/the-store.md
       - Inspecting the Files: walkthrough/inspecting-the-files.md
+      - Validation and Templates: walkthrough/validation-and-templates.md
   - Why Build This?:
       - Why anarchie?: why/why-anarchie.md
       - Why git?: why/why-git.md
@@ -63,6 +64,8 @@ nav:
       - anarchie init: commands/init.md
       - anarchie ehr: commands/ehr.md
       - anarchie commit: commands/commit.md
+      - anarchie validate: commands/validate.md
+      - anarchie template: commands/template.md
       - anarchie cat: commands/cat.md
       - anarchie log: commands/log.md
       - anarchie diff: commands/diff.md

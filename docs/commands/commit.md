@@ -6,7 +6,7 @@ commit carrying the audit trail.
 ## Usage
 
 ```bash
-anarchie commit <ehr> <file> [--object-id <id>] \
+anarchie commit <ehr> <file> [--object-id <id>] [--no-validate] \
   [--committer <name>] [--email <email>] [-m <message>]
 ```
 
@@ -15,9 +15,30 @@ anarchie commit <ehr> <file> [--object-id <id>] \
 | `<ehr>`               | -                      | The EHR id to commit into.                                   |
 | `<file>`              | -                      | Path to a canonical-JSON Composition file.                   |
 | `--object-id <id>`    | (new object)           | Object id of an existing Composition to create a new version of. |
+| `--no-validate`       | off                    | Skip validation and commit the Composition unchecked.        |
 | `--committer <name>`  | `anarchie`             | Committer name for the audit trail.                          |
 | `--email <email>`     | `anarchie@localhost`   | Committer email for the audit trail.                         |
 | `-m`, `--message`     | `Commit composition`   | Contribution description (the commit subject).               |
+
+## Validation
+
+Every commit is validated before it is written. Reference Model invariants are
+always checked; if the Composition declares a `template_id` that has been
+[registered](template.md), its Operational Template constraints are enforced
+too. A Composition with any **error**-level violation is rejected and nothing is
+written:
+
+```bash
+$ anarchie commit "$EHR" bad.json -m "oops"
+Rejected: composition failed validation
+  [error] /content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/.../value/magnitude (C_DV_QUANTITY)
+        magnitude 5000 outside permitted range for units "mm[Hg]"
+Error: 1 validation error(s)
+```
+
+Use `--no-validate` to bypass the check (for example when importing legacy data
+you intend to clean up later). See [anarchie validate](validate.md) to check a
+file without committing.
 
 ## New Composition
 

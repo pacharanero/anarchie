@@ -3,14 +3,34 @@
 version = 3
 
 [[package]]
+name = "anarchie-aom"
+version = "0.0.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "anarchie-cli"
 version = "0.0.0"
 dependencies = [
  "anarchie-rm",
  "anarchie-store",
+ "anarchie-validate",
  "anyhow",
  "clap",
  "serde_json",
+]
+
+[[package]]
+name = "anarchie-opt"
+version = "0.0.0"
+dependencies = [
+ "anarchie-aom",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -27,6 +47,7 @@ name = "anarchie-store"
 version = "0.0.0"
 dependencies = [
  "anarchie-rm",
+ "anarchie-validate",
  "jiff",
  "serde",
  "serde_json",
@@ -34,6 +55,17 @@ dependencies = [
  "thiserror",
  "toml",
  "uuid",
+]
+
+[[package]]
+name = "anarchie-validate"
+version = "0.0.0"
+dependencies = [
+ "anarchie-aom",
+ "anarchie-opt",
+ "anarchie-rm",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

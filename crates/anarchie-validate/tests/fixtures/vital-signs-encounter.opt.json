@@ -1,0 +1,123 @@
+{
+  "template_id": "vital_signs_encounter.v1",
+  "concept": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "definition": {
+    "type": "COMPLEX",
+    "rm_type": "COMPOSITION",
+    "node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "occurrences": { "lower": 1, "upper": 1 },
+    "attributes": [
+      {
+        "rm_attribute": "content",
+        "existence": { "lower": 1, "upper": 1 },
+        "cardinality": { "interval": { "lower": 1, "upper": 1 } },
+        "children": [
+          {
+            "type": "COMPLEX",
+            "rm_type": "OBSERVATION",
+            "node_id": "openEHR-EHR-OBSERVATION.blood_pressure.v2",
+            "occurrences": { "lower": 1, "upper": 1 },
+            "attributes": [
+              {
+                "rm_attribute": "data",
+                "existence": { "lower": 1, "upper": 1 },
+                "children": [
+                  {
+                    "type": "COMPLEX",
+                    "rm_type": "HISTORY",
+                    "node_id": "at0001",
+                    "occurrences": { "lower": 1, "upper": 1 },
+                    "attributes": [
+                      {
+                        "rm_attribute": "events",
+                        "existence": { "lower": 1 },
+                        "children": [
+                          {
+                            "type": "COMPLEX",
+                            "rm_type": "EVENT",
+                            "node_id": "at0006",
+                            "occurrences": { "lower": 1 },
+                            "attributes": [
+                              {
+                                "rm_attribute": "data",
+                                "existence": { "lower": 1, "upper": 1 },
+                                "children": [
+                                  {
+                                    "type": "COMPLEX",
+                                    "rm_type": "ITEM_TREE",
+                                    "node_id": "at0003",
+                                    "occurrences": { "lower": 1, "upper": 1 },
+                                    "attributes": [
+                                      {
+                                        "rm_attribute": "items",
+                                        "existence": { "lower": 1 },
+                                        "children": [
+                                          {
+                                            "type": "COMPLEX",
+                                            "rm_type": "ELEMENT",
+                                            "node_id": "at0004",
+                                            "occurrences": { "lower": 1, "upper": 1 },
+                                            "attributes": [
+                                              {
+                                                "rm_attribute": "value",
+                                                "existence": { "lower": 1, "upper": 1 },
+                                                "children": [
+                                                  {
+                                                    "type": "DV_QUANTITY",
+                                                    "property": "pressure",
+                                                    "list": [
+                                                      {
+                                                        "units": "mm[Hg]",
+                                                        "magnitude": { "lower": 0.0, "upper": 1000.0 }
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "COMPLEX",
+                                            "rm_type": "ELEMENT",
+                                            "node_id": "at0005",
+                                            "occurrences": { "lower": 1, "upper": 1 },
+                                            "attributes": [
+                                              {
+                                                "rm_attribute": "value",
+                                                "existence": { "lower": 1, "upper": 1 },
+                                                "children": [
+                                                  {
+                                                    "type": "DV_QUANTITY",
+                                                    "property": "pressure",
+                                                    "list": [
+                                                      {
+                                                        "units": "mm[Hg]",
+                                                        "magnitude": { "lower": 0.0, "upper": 1000.0 }
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
