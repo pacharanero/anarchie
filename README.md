@@ -89,8 +89,11 @@ The artefact at the centre - the directory of canonical Composition JSON - is qu
 - [specs/architecture.md](specs/architecture.md) - the onion model, layers, and on-disk layout
 - [specs/on-disk-format.md](specs/on-disk-format.md) - exact directory and file conventions
 - [specs/versioning-and-git.md](specs/versioning-and-git.md) - mapping contributions/versions onto git
+- [specs/reference-model-coverage.md](specs/reference-model-coverage.md) - which RM types are implemented vs deferred
+- [specs/serialisation-formats.md](specs/serialisation-formats.md) - canonical JSON / XML / FLAT / STRUCTURED / Web Template
 - [specs/query-engine.md](specs/query-engine.md) - how AQL gets executed over flat files
 - [specs/validation.md](specs/validation.md) - RM + template validation strategy
+- [specs/openehr-terminology-codes.md](specs/openehr-terminology-codes.md) - the openEHR-internal code groups (change-type, lifecycle, category, ISM)
 - [specs/rest-api.md](specs/rest-api.md) - openEHR REST API surface and conformance
 - [specs/scaling.md](specs/scaling.md) - the performance envelope and where files stop being a good idea
 - [specs/bundled-archetypes.md](specs/bundled-archetypes.md) - "batteries included": shipping a curated, licensed OPT starter set

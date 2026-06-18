@@ -112,8 +112,9 @@ Some constraints bind to external terminologies (SNOMED CT, LOINC, openEHR-inter
 
 Validation correctness is non-negotiable, so it is anchored to external truth rather than our own assumptions:
 
-- **The openEHR conformance test suite / CDR test data** - reuse the community's published valid and invalid Composition examples.
+- **The openEHR conformance test suite / CDR test data** - reuse the community's published valid and invalid Composition examples. The formal cases live in [openEHR/specifications-CNF](https://github.com/openEHR/specifications-CNF).
 - **Cross-check against Archie** at *development* time (not runtime): a test harness runs the same Composition through both Archie and `anarchie-validate` and asserts the verdicts agree. Disagreements are bugs to investigate. This gives us a JVM oracle without a JVM dependency in the shipped binary.
+- **Cross-check REST/AQL behaviour against a reference CDR** - the public [EHRbase sandbox](https://sandkiste.ehrbase.org/) is a convenient behavioural oracle for the *server* layer: submit the same template, Composition, and AQL to both and compare responses. Like Archie, it is a development-time reference only, never a runtime dependency.
 - **Property-based tests** that generate RM instances from a template and assert they validate, and mutate them to assert they fail.
 
 ---

@@ -2,7 +2,7 @@
 
 The openEHR Foundation publishes a normative [REST API specification](https://specifications.openehr.org/releases/ITS-REST/latest). Conforming to it - rather than inventing a bespoke API - is what lets existing openEHR applications, form renderers, and tools talk to `anarchie` unchanged. This is the same discipline as `sct` implementing the FHIR terminology operations (`$lookup`, `$validate-code`, `$expand`) rather than a custom search API.
 
-The REST server is an **outer layer** of the onion (`anarchie serve`), optional and stateless over the store. Like `sct serve`, it is a feature-gated subcommand so the core tool stays dependency-light.
+The REST server is an **outer layer** of the onion (`anarchie serve`), optional and stateless over the store. Like `sct serve`, it is a feature-gated subcommand so the core tool stays dependency-light. The likely implementation is an `axum` + `tower-http` stack (async, minimal, widely used), but the framework is an implementation detail behind the conformance contract below.
 
 ---
 
@@ -34,6 +34,10 @@ The REST server is an **outer layer** of the onion (`anarchie serve`), optional 
 |---|---|---|
 | `GET` | `/v1/query/aql?q=…` | Execute AQL (ad-hoc) |
 | `POST` | `/v1/query/aql` | Execute AQL (body, with parameters) |
+| `GET` | `/v1/query/{name}` / `/v1/query/{name}/{version}` | Execute a stored (named) query |
+| `POST` | `/v1/query/{name}` / `/v1/query/{name}/{version}` | Execute a stored query with body parameters |
+
+Ad-hoc versus stored queries are described in [query-engine.md](query-engine.md): stored queries are registered as git-versioned data under the deployment and executed by name and version.
 
 ### Phase 3 — Definition / templates + advanced
 
@@ -42,9 +46,15 @@ The REST server is an **outer layer** of the onion (`anarchie serve`), optional 
 | `POST` | `/v1/definition/template/adl1.4` | Upload an Operational Template |
 | `GET` | `/v1/definition/template/adl1.4` | List templates |
 | `GET` | `/v1/definition/template/adl1.4/{id}` | Get a template |
+| `GET` | `/v1/definition/template/adl1.4/{id}/example` | Get an example Composition for a template |
+| `PUT` | `/v1/definition/query/{name}` | Store/register a named AQL query |
+| `GET` | `/v1/definition/query/{name}` / `/{name}/{version}` | List / get a stored query |
 | `GET` | `/v1/ehr/{ehr_id}/versioned_composition/{id}/version` | Version history |
 | `GET` | `/v1/ehr/{ehr_id}/versioned_composition/{id}/version/{time}` | Version at time |
+| `GET` | `/v1/ehr/{ehr_id}/versioned_composition/{id}/revision_history` | Revision history (audit chain) |
 | `GET` | `/v1/ehr/{ehr_id}/contribution/{id}` | Get a contribution |
+
+The `…/example` endpoint synthesises a skeleton Composition that satisfies a template's constraints - a useful affordance for clients and for `anarchie`'s own round-trip tests, generated from the Web Template ([serialisation-formats.md](serialisation-formats.md)). The `versioned_composition` and `revision_history` endpoints synthesise the openEHR `VERSIONED_COMPOSITION` / `ORIGINAL_VERSION` / `REVISION_HISTORY` views on read from the git history plus the contribution manifests (see [reference-model-coverage.md](reference-model-coverage.md)).
 
 ---
 
@@ -63,9 +73,11 @@ The server is a thin translation from HTTP to store operations - it owns no data
 ## Headers and conformance details that matter
 
 - **`ETag` / `If-Match`** - carry the `version_uid`; this is how openEHR does optimistic locking and how `anarchie` enforces lost-update protection (see [versioning-and-git.md](versioning-and-git.md)).
+- **`openEHR-AUDIT_DETAILS`** - a request header on modifying operations carrying the committer/description/change-type for the contribution audit; maps onto the git author and the `anarchie-*` trailers.
+- **`openEHR-VERSION`** - response header echoing version metadata on Composition responses.
 - **`Prefer: return=representation|minimal`** - whether the body echoes the stored object.
 - **`Location`** - the canonical URL of a newly created resource.
-- **Content types** - `application/json` for canonical JSON. (XML/`application/xml` is a later, optional concern; canonical JSON is the on-disk and on-the-wire default.)
+- **Content types and negotiation** - `application/json` (canonical JSON) is the default on the wire and on disk. The server additionally negotiates, at the boundary only, `application/xml` (canonical XML), `application/openehr.wt+json` (Web Template, for template GET), and the widely-used `application/openehr.flat+json` / `application/openehr.structured+json` renderer formats. All non-canonical formats are converted to/from canonical JSON at the edge per [serialisation-formats.md](serialisation-formats.md); the store only ever holds canonical JSON.
 - **Status codes** - `201` create, `200` get/update, `204` delete, `400` malformed, `404` not found, `409` conflict, `412` precondition failed, `422` validation failure (with the structured violation list from [validation.md](validation.md)).
 
 ---

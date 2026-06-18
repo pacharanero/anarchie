@@ -17,6 +17,9 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 - [x] Validation strategy (decision: Rust-native)
 - [x] Query engine approach
 - [x] REST API surface
+- [x] Serialisation formats (canonical JSON / XML / FLAT / STRUCTURED / Web Template)
+- [x] Reference Model coverage tracker
+- [x] openEHR terminology code reference (change-type, lifecycle, category, ISM)
 - [x] Scaling envelope (honest limits)
 - [ ] Circulate for critique (openEHR Discourse, gitehr overlap)
 
@@ -62,6 +65,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 - [x] `anarchie template add` - register templates as the schema.
 - [x] `anarchie-validate` - RM + OPT tree-walk producing structured violations.
 - [x] Wire validation into the commit path (invalid → rejected).
+- [ ] Ingest real `.opt` XML (Archetype Designer / ADL Workbench export) into the AOM tree, in addition to anarchie's native flattened-JSON form (see [serialisation-formats.md](serialisation-formats.md)).
 - [ ] Cross-check harness against Archie (JVM as a *test-time* oracle only). *Deferred to a later iteration: it needs the JVM toolchain and a curated conformance corpus, and is independent of the validator's own design.*
 
 **Learning milestone:** can a pure-Rust validator agree with Archie on the conformance test corpus? This is the project's biggest risk and biggest learning. *Partly answered, partly deferred. The architecture that emerged: RM validation walks the **typed** Reference Model tree (`anarchie-rm` structs) checking invariants that hold for every Composition (CODE_PHRASE completeness, ELEMENT value-XOR-null_flavour, DV_QUANTITY `magnitude_status`, DV_PROPORTION kind/denominator), while OPT validation walks the **canonical JSON** guided by the AOM constraint tree - matching `C_COMPLEX_OBJECT` children by `archetype_node_id`, enforcing occurrences / existence / cardinality, and applying leaf constraints (`C_DV_QUANTITY` units + magnitude range, `C_CODE_PHRASE` terminology + code set, `C_STRING` value list, `C_DV_ORDINAL`). The key insight: the AOM names RM attributes as **strings** that map directly onto JSON keys, so the OPT walk over `serde_json::Value` is dramatically simpler than trying to reflect over typed enums - the typed tree is right for universal invariants, the JSON tree is right for archetype-specific constraints. The Archie cross-check (the actual corpus-agreement question) is deferred; what is proven now is that the validator catches real breaches end-to-end (an out-of-range systolic is rejected at `anarchie commit` with a precise openEHR path) and that valid data round-trips clean. Operational Templates are anarchie's own native flattened-JSON form for now; ingesting `.opt` XML from Archetype Designer is future work.*
@@ -91,6 +95,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 - [ ] AQL parser (Rust grammar) for the MVP subset.
 - [ ] AQL → SQL translation over the path index.
 - [ ] `anarchie aql "SELECT …"` returning an openEHR ResultSet.
+- [ ] Stored (named) queries registered as git-versioned data, executed by name and version.
 - [ ] DuckDB/Parquet path for aggregate analytics (explore how much it gives for free).
 
 **Learning milestone:** how much of AQL can DuckDB-over-JSON handle before a bespoke engine is unavoidable?
@@ -102,8 +107,10 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 **Goal:** interoperate with the existing openEHR ecosystem and with AI agents.
 
 - [ ] `anarchie serve` - openEHR REST API (Phase 1 surface from [rest-api.md](rest-api.md)): EHR + Composition CRUD, `If-Match` concurrency.
-- [ ] AQL endpoint.
-- [ ] Template definition endpoints.
+- [ ] AQL endpoint (ad-hoc + stored queries).
+- [ ] Template definition endpoints, plus example-Composition generation from a template.
+- [ ] Web Template generation on template registration; FLAT / STRUCTURED conversion at the REST boundary (see [serialisation-formats.md](serialisation-formats.md)).
+- [ ] Cross-check REST/AQL behaviour against the EHRbase sandbox as a test-time oracle.
 - [ ] `anarchie mcp` - stdio MCP server: get/commit/validate/query Compositions for LLM agents, reusing the structured violation output to let an agent self-correct.
 
 **Learning milestone:** can an existing openEHR app or form renderer point at `anarchie serve` and work?

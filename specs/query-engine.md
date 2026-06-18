@@ -88,8 +88,48 @@ Don't boil the ocean. A useful first cut of AQL:
 3. `WHERE` with comparison operators on leaf values and `MATCHES` for coded values.
 4. `ORDER BY`, `LIMIT`, `OFFSET`.
 5. Basic aggregates (`COUNT`) - with `DuckDB` doing the heavy lifting for `AVG`/percentiles later.
+6. `$`-prefixed parameters (for example `$ehrUid`), resolved at execution time from the request's `query_parameters` map.
 
-Explicitly deferred: full path predicates, complex `CONTAINS` nesting, `FUNCTION` calls, temporal `VERSION` queries, terminology subsumption in `WHERE` (delegate to `sct`).
+Explicitly deferred: full path predicates, complex `CONTAINS` nesting, most `FUNCTION` calls, temporal `VERSION` queries, terminology subsumption in `WHERE` (delegate to `sct`).
+
+---
+
+## Grammar reference
+
+AQL has a published ANTLR4 grammar (`AqlLexer.g4` / `AqlParser.g4` in [openEHR/specifications-QUERY](https://github.com/openEHR/specifications-QUERY)). `anarchie` reimplements the parser in Rust (`nom` / `pest` / `lalrpop` are all viable and keep the no-runtime promise), targeting the MVP subset first. The shape to implement:
+
+```
+query         = SELECT distinct? top? select_exprs FROM from_expr where? order_by? limit?
+select_expr   = identified_path (AS alias)? | aggregate_fn "(" identified_path ")" (AS alias)?
+from_expr     = class_expr (CONTAINS contains_expr)? | contains_expr (AND | OR) contains_expr
+class_expr    = rm_type variable? archetype_predicate? | VERSION variable? version_predicate?
+where_expr    = identified_path comparison_op terminal
+              | identified_path (LIKE pattern | MATCHES "{" value_list "}")
+              | EXISTS identified_path | NOT where_expr | where_expr (AND | OR) where_expr
+identified_path = variable ("/" object_path)?
+predicate     = "[" (at_code | archetype_id | id_code) ("," name_value)? "]"
+order_expr    = identified_path (ASC | DESC)?
+limit         = LIMIT integer (OFFSET integer)?
+```
+
+## Function catalogue
+
+The full set AQL defines, to be implemented incrementally (the index/DuckDB engine supplies most of these for free; the rest are evaluated in the projection step):
+
+| Category | Functions |
+|---|---|
+| Aggregate | `COUNT`, `MIN`, `MAX`, `SUM`, `AVG` |
+| String | `LENGTH`, `CONTAINS`, `POSITION`, `SUBSTRING`, `CONCAT`, `CONCAT_WS` |
+| Numeric | `ABS`, `MOD`, `CEIL`, `FLOOR`, `ROUND` |
+| Date/Time | `CURRENT_DATE`, `CURRENT_TIME`, `CURRENT_DATE_TIME` / `NOW`, `CURRENT_TIMEZONE` |
+| Terminology | `TERMINOLOGY(service, code, expansion)` - delegated to the terminology backend (`sct`) |
+
+## Ad-hoc and stored queries
+
+openEHR distinguishes **ad-hoc** queries (the AQL text is in the request) from **stored** (named) queries (registered once, executed by name and version). `anarchie` supports both:
+
+- **Ad-hoc** - `anarchie aql "SELECT …"` / `POST /v1/query/aql`. The text is parsed, planned, and executed against the index.
+- **Stored** - a query is registered under a name and semantic version (`PUT /v1/definition/query/{name}`) and later run by reference (`GET|POST /v1/query/{name}/{version}`). Stored queries are **data, not code**: they live as files under the deployment (alongside templates), are git-versioned, and are inspectable like everything else. This mirrors the template registry - register once, reference by id.
 
 ---
 
