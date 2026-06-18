@@ -8,3 +8,6 @@
 # Zensical docs build output and local venv
 /site
 /.venv-docs
+
+# Local scratch CDR deployments used for manual testing
+/my-cdr
