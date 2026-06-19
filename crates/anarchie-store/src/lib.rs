@@ -10,6 +10,7 @@ mod config;
 mod deployment;
 mod error;
 mod git;
+mod starter;
 mod template;
 
 pub use config::{DeploymentConfig, IndexConfig, TerminologyConfig};
@@ -19,3 +20,4 @@ pub use deployment::{
 };
 pub use error::{Result, StoreError};
 pub use git::Git;
+pub use starter::starter_template_ids;
