@@ -7,6 +7,7 @@ members = [
     "crates/anarchie-opt",
     "crates/anarchie-validate",
     "crates/anarchie-store",
+    "crates/anarchie-query",
     "crates/anarchie-cli",
 ]
 
@@ -24,6 +25,7 @@ anarchie-aom = { path = "crates/anarchie-aom" }
 anarchie-opt = { path = "crates/anarchie-opt" }
 anarchie-validate = { path = "crates/anarchie-validate" }
 anarchie-store = { path = "crates/anarchie-store" }
+anarchie-query = { path = "crates/anarchie-query" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }
 thiserror = "2.0.16"

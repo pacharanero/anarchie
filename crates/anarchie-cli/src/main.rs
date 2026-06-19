@@ -4,9 +4,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use anarchie_rm::{
-    Composition, ContentItem, DataValue, Item, ItemStructure,
-};
+use anarchie_rm::{Composition, ContentItem, DataValue, Item, ItemStructure};
 use anarchie_store::{Audit, ChangeType, Deployment, DeploymentConfig, StoreError};
 use anarchie_validate::{Opt, ValidationReport};
 use anyhow::{bail, Context, Result};
@@ -33,6 +31,10 @@ enum Command {
         file: PathBuf,
     },
     /// Scaffold a new anarchie deployment in the current (or given) directory.
+    ///
+    /// By default the deployment is seeded with a curated set of bundled
+    /// "starter" Operational Templates so it can store real clinical data
+    /// immediately; pass --minimal for an empty CDR.
     Init {
         /// Directory to create the deployment in (defaults to the current dir).
         #[arg(default_value = ".")]
@@ -40,6 +42,9 @@ enum Command {
         /// The creating-system identity used in every version_uid.
         #[arg(long, default_value = "anarchie.local")]
         system_id: String,
+        /// Create an empty CDR without the bundled starter templates.
+        #[arg(long)]
+        minimal: bool,
     },
     /// Manage EHRs (one git repository per patient).
     Ehr {
@@ -109,6 +114,29 @@ enum Command {
         /// The later version_tree_id.
         to: u32,
     },
+    /// Build or refresh the derived query index from the Composition files.
+    ///
+    /// The index is the read model (CQRS): rebuildable from the files, never
+    /// authoritative. By default only EHRs whose git HEAD changed are
+    /// re-indexed; --rebuild drops and rebuilds everything.
+    Index {
+        /// Drop and rebuild the entire index from scratch.
+        #[arg(long)]
+        rebuild: bool,
+    },
+    /// Run an ad-hoc AQL query against the index.
+    Aql {
+        /// The AQL query text.
+        query: String,
+        /// A `$`-parameter binding as `NAME=VALUE` (repeatable).
+        #[arg(long = "param", value_name = "NAME=VALUE")]
+        params: Vec<String>,
+    },
+    /// Manage and run stored (named) AQL queries.
+    Query {
+        #[command(subcommand)]
+        command: QueryCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -137,12 +165,43 @@ enum TemplateCommand {
     List,
 }
 
+#[derive(Subcommand)]
+enum QueryCommand {
+    /// Register an AQL query under a name (and optional semantic version).
+    Add {
+        /// The query name.
+        name: String,
+        /// Path to a file containing the AQL text.
+        file: PathBuf,
+        /// Semantic version to register under (defaults to 1.0.0).
+        #[arg(long)]
+        version: Option<String>,
+    },
+    /// List the registered stored queries.
+    List,
+    /// Run a stored query by name (and optional version).
+    Run {
+        /// The query name.
+        name: String,
+        /// The version to run (defaults to the highest registered).
+        #[arg(long)]
+        version: Option<String>,
+        /// A `$`-parameter binding as `NAME=VALUE` (repeatable).
+        #[arg(long = "param", value_name = "NAME=VALUE")]
+        params: Vec<String>,
+    },
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Info { file } => info(&file),
         Command::Canonicalise { file } => canonicalise(&file),
-        Command::Init { path, system_id } => init(&path, &system_id),
+        Command::Init {
+            path,
+            system_id,
+            minimal,
+        } => init(&path, &system_id, minimal),
         Command::Ehr { command } => ehr(command),
         Command::Commit {
             ehr,
@@ -152,7 +211,15 @@ fn main() -> Result<()> {
             email,
             message,
             no_validate,
-        } => commit(&ehr, &file, object_id, &committer, &email, &message, no_validate),
+        } => commit(
+            &ehr,
+            &file,
+            object_id,
+            &committer,
+            &email,
+            &message,
+            no_validate,
+        ),
         Command::Validate {
             file,
             template,
@@ -167,6 +234,9 @@ fn main() -> Result<()> {
             from,
             to,
         } => diff(&ehr, &object_id, from, to),
+        Command::Index { rebuild } => index_cmd(rebuild),
+        Command::Aql { query, params } => aql_cmd(&query, &params),
+        Command::Query { command } => query_cmd(command),
     }
 }
 
@@ -175,11 +245,25 @@ fn open_deployment() -> Result<Deployment> {
     Deployment::open(&cwd).context("opening anarchie deployment")
 }
 
-fn init(path: &PathBuf, system_id: &str) -> Result<()> {
+fn init(path: &PathBuf, system_id: &str, minimal: bool) -> Result<()> {
     let config = DeploymentConfig::new(system_id);
     let deployment = Deployment::init(path, config).context("initialising deployment")?;
-    println!("Initialised anarchie deployment at {}", deployment.root().display());
+    println!(
+        "Initialised anarchie deployment at {}",
+        deployment.root().display()
+    );
     println!("  system_id: {}", deployment.config().system_id);
+    if minimal {
+        println!("  starter templates: none (--minimal)");
+    } else {
+        let ids = deployment
+            .install_starter_templates()
+            .context("installing starter templates")?;
+        println!("  starter templates ({}):", ids.len());
+        for id in &ids {
+            println!("    - {id}");
+        }
+    }
     Ok(())
 }
 
@@ -272,11 +356,13 @@ fn template(command: TemplateCommand) -> Result<()> {
     let deployment = open_deployment()?;
     match command {
         TemplateCommand::Add { file } => {
-            let json = fs::read_to_string(&file)
-                .with_context(|| format!("reading {}", file.display()))?;
+            let json =
+                fs::read_to_string(&file).with_context(|| format!("reading {}", file.display()))?;
             let opt = Opt::from_json(&json)
                 .with_context(|| format!("parsing {} as an anarchie OPT", file.display()))?;
-            let id = deployment.add_template(&opt).context("registering template")?;
+            let id = deployment
+                .add_template(&opt)
+                .context("registering template")?;
             println!("Registered template {id}");
             Ok(())
         }
@@ -285,6 +371,84 @@ fn template(command: TemplateCommand) -> Result<()> {
                 println!("{id}");
             }
             Ok(())
+        }
+    }
+}
+
+/// Path to the deployment's derived AQL index (git-ignored, disposable).
+fn index_db_path(deployment: &Deployment) -> PathBuf {
+    deployment.root().join("index").join("aql.db")
+}
+
+fn index_cmd(rebuild: bool) -> Result<()> {
+    let deployment = open_deployment()?;
+    let db = index_db_path(&deployment);
+    let mut index = anarchie_query::Index::open(&db).context("opening index")?;
+    let count = index
+        .build(&deployment, rebuild)
+        .context("building index")?;
+    println!("Indexed {count} composition(s) into {}", db.display());
+    Ok(())
+}
+
+/// Parse repeated `NAME=VALUE` CLI args into an AQL parameter map.
+fn parse_params(pairs: &[String]) -> Result<anarchie_query::Params> {
+    let mut params = anarchie_query::Params::new();
+    for pair in pairs {
+        let (name, value) = pair
+            .split_once('=')
+            .ok_or_else(|| anyhow::anyhow!("--param must be NAME=VALUE, got `{pair}`"))?;
+        params.insert(name.to_string(), value.to_string());
+    }
+    Ok(params)
+}
+
+fn run_aql(deployment: &Deployment, aql: &str, params: &anarchie_query::Params) -> Result<()> {
+    let index = anarchie_query::Index::open(index_db_path(deployment)).context("opening index")?;
+    let result = anarchie_query::execute(&index, aql, params).context("executing AQL")?;
+    println!("{}", serde_json::to_string_pretty(&result)?);
+    Ok(())
+}
+
+fn aql_cmd(query: &str, params: &[String]) -> Result<()> {
+    let deployment = open_deployment()?;
+    let params = parse_params(params)?;
+    run_aql(&deployment, query, &params)
+}
+
+fn query_cmd(command: QueryCommand) -> Result<()> {
+    let deployment = open_deployment()?;
+    match command {
+        QueryCommand::Add {
+            name,
+            file,
+            version,
+        } => {
+            let aql =
+                fs::read_to_string(&file).with_context(|| format!("reading {}", file.display()))?;
+            let (name, version) =
+                anarchie_query::stored::add(deployment.root(), &name, version.as_deref(), &aql)
+                    .context("registering stored query")?;
+            println!("Registered query {name}/{version}");
+            Ok(())
+        }
+        QueryCommand::List => {
+            for q in
+                anarchie_query::stored::list(deployment.root()).context("listing stored queries")?
+            {
+                println!("{}/{}", q.name, q.version);
+            }
+            Ok(())
+        }
+        QueryCommand::Run {
+            name,
+            version,
+            params,
+        } => {
+            let aql = anarchie_query::stored::get(deployment.root(), &name, version.as_deref())
+                .context("loading stored query")?;
+            let params = parse_params(&params)?;
+            run_aql(&deployment, &aql, &params)
         }
     }
 }
@@ -321,7 +485,10 @@ fn log(ehr_id: &str, object_id: &str) -> Result<()> {
     let deployment = open_deployment()?;
     let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
     for entry in repo.log(object_id).context("reading history")? {
-        println!("{}  {}  {}", entry.version_uid, entry.time_committed, entry.subject);
+        println!(
+            "{}  {}  {}",
+            entry.version_uid, entry.time_committed, entry.subject
+        );
         println!("  commit {}", entry.commit_sha);
     }
     Ok(())
@@ -333,13 +500,15 @@ fn diff(ehr_id: &str, object_id: &str, from: u32, to: u32) -> Result<()> {
     }
     let deployment = open_deployment()?;
     let repo = deployment.open_ehr(ehr_id).context("opening EHR")?;
-    print!("{}", repo.diff(object_id, from, to).context("diffing versions")?);
+    print!(
+        "{}",
+        repo.diff(object_id, from, to).context("diffing versions")?
+    );
     Ok(())
 }
 
 fn load(file: &PathBuf) -> Result<Composition> {
-    let json = fs::read_to_string(file)
-        .with_context(|| format!("reading {}", file.display()))?;
+    let json = fs::read_to_string(file).with_context(|| format!("reading {}", file.display()))?;
     anarchie_rm::from_canonical_str(&json)
         .with_context(|| format!("parsing {} as a COMPOSITION", file.display()))
 }
@@ -353,7 +522,10 @@ fn info(file: &PathBuf) -> Result<()> {
     }
 
     println!("Composition: {}", composition.name.value());
-    println!("  archetype:  {}", composition.archetype_details.archetype_id.value);
+    println!(
+        "  archetype:  {}",
+        composition.archetype_details.archetype_id.value
+    );
     if let Some(template) = &composition.archetype_details.template_id {
         println!("  template:   {}", template.value);
     }

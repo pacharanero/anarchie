@@ -76,13 +76,13 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** `anarchie init` yields a CDR that can store real clinical data immediately, not an empty repo.
 
-- [ ] Curate the Tier 1 template set from openEHR International **Published** archetypes (see [bundled-archetypes.md](bundled-archetypes.md)).
-- [ ] Build the OPTs (build-time flatten via Archetype Designer / ADL Workbench / Archie).
-- [ ] Dual-license: code **AGPL-3.0-or-later**, bundled OPTs under **CC-BY-SA 3.0** with a provenance/`NOTICE` manifest (see [licensing.md](licensing.md)).
-- [ ] `anarchie init --with-starter-templates` (default) / `--minimal`.
-- [ ] Verify CKM Terms of Use wording and quote it in the bundle NOTICE before shipping.
+- [x] Curate the Tier 1 template set from openEHR International **Published** archetypes (see [bundled-archetypes.md](bundled-archetypes.md)). *A first cut of three: `vital_signs_encounter` (blood pressure, pulse, temperature, respiration, weight, height), `problem_list` (`EVALUATION.problem_diagnosis`), `adverse_reaction_list` (`EVALUATION.adverse_reaction_risk`). Medications, labs, procedures and immunisations remain to round out the IPS span.*
+- [x] Build the OPTs as anarchie's native flattened OPT JSON. *Hand-authored against the real archetype at-codes for the MVP; the build-time flatten via Archetype Designer / ADL Workbench / Archie remains the path once `.opt` XML ingest lands (Phase 3 open item).*
+- [x] Dual-license: code **AGPL-3.0-or-later**, bundled OPTs under **CC-BY-SA 3.0** with a provenance manifest (see [licensing.md](licensing.md)). *`crates/anarchie-store/src/starter/templates/attribution.md` records per-template provenance and the ShareAlike notice, embedded in the binary and written into each deployment's `templates/` alongside the installed models so the licence travels with the data.*
+- [x] `anarchie init` installs the starter set by default; `--minimal` yields an empty CDR.
+- [ ] Verify CKM Terms of Use wording and quote it in the bundle attribution before shipping. *Packaging-time step; deferred until a release is cut.*
 
-**Learning milestone:** can a newcomer store a believable patient record (vitals, problems, meds, allergies, results) within five minutes of install?
+**Learning milestone:** can a newcomer store a believable patient record (vitals, problems, meds, allergies, results) within five minutes of install? *Demonstrated end-to-end for the bundled span: a fresh `anarchie init` ships three registered templates, and a real blood-pressure Composition validates against `vital_signs_encounter.v1` and commits in one step with no authoring. The templates are embedded with `include_str!`, so the single-binary promise holds - no companion files needed at runtime.*
 
 ---
 
@@ -90,15 +90,15 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** answer population queries, not just id lookups.
 
-- [ ] `anarchie index` - flatten Compositions into a path-value table in SQLite.
-- [ ] Index freshness tracking in the manifest; `--rebuild` backstop.
-- [ ] AQL parser (Rust grammar) for the MVP subset.
-- [ ] AQL → SQL translation over the path index.
-- [ ] `anarchie aql "SELECT …"` returning an openEHR ResultSet.
-- [ ] Stored (named) queries registered as git-versioned data, executed by name and version.
-- [ ] DuckDB/Parquet path for aggregate analytics (explore how much it gives for free).
+- [x] `anarchie index` - flatten Compositions into a path-value table in SQLite (`anarchie-query`, bundled `rusqlite`, no runtime dependency).
+- [x] Index freshness tracking; `--rebuild` backstop. *The index stores each EHR's last-indexed git HEAD in an `ehr_freshness` table; a plain `anarchie index` re-indexes only EHRs whose HEAD moved, and `--rebuild` drops and rebuilds the lot. Freshness lives in the derived index, not the manifest, keeping the read model self-describing and disposable.*
+- [x] AQL parser (hand-written Rust lexer + recursive-descent parser) for the MVP subset - `SELECT` of leaf paths and aggregates, `FROM … CONTAINS …`, `WHERE` (comparisons, `MATCHES`, `LIKE`, `EXISTS`, `AND`/`OR`/`NOT`), `ORDER BY`, `LIMIT`/`OFFSET`, `$`-parameters.
+- [x] AQL → SQL translation over the path index. *The index keys every leaf by its composition-rooted canonical path and tags each row with its ENTRY archetype, so an identified path resolves to an exact `path` lookup and `CONTAINS OBSERVATION o[id]` to an exact `entry_archetype` match - no JSON walking at query time. Comparisons/aggregates become correlated `EXISTS`/sub-selects over `path_value`.*
+- [x] `anarchie aql "SELECT …"` returning an openEHR-style ResultSet (`{q, columns, rows}`).
+- [x] Stored (named) queries registered as git-versioned data, executed by name and version. *`anarchie query add|list|run`; queries live as `queries/<name>/<version>.aql` files alongside templates - data, not code.*
+- [ ] DuckDB/Parquet path for aggregate analytics (explore how much it gives for free). *Deferred: the SQLite path covers the MVP aggregates (`COUNT`/`MIN`/`MAX`/`SUM`/`AVG`); the columnar analytics engine is a later, additive exploration.*
 
-**Learning milestone:** how much of AQL can DuckDB-over-JSON handle before a bespoke engine is unavoidable?
+**Learning milestone:** how much of AQL can DuckDB-over-JSON handle before a bespoke engine is unavoidable? *Reframed by what we built: the SQLite path-extraction index answers the MVP AQL subset directly - the "flatten once, serve many" move from `sct` - proven end-to-end (a real blood-pressure Composition is indexed and a `WHERE systolic > 140` / `COUNT(*)` / `AVG` / parameterised query returns the right rows via `anarchie index` + `anarchie aql`). The DuckDB-over-JSON question is still open and now isolated to the analytics tier, not the core retrieval path.*
 
 ---
 
