@@ -106,14 +106,14 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** interoperate with the existing openEHR ecosystem and with AI agents.
 
-- [ ] `anarchie serve` - openEHR REST API (Phase 1 surface from [rest-api.md](rest-api.md)): EHR + Composition CRUD, `If-Match` concurrency.
-- [ ] AQL endpoint (ad-hoc + stored queries).
-- [ ] Template definition endpoints, plus example-Composition generation from a template.
-- [ ] Web Template generation on template registration; FLAT / STRUCTURED conversion at the REST boundary (see [serialisation-formats.md](serialisation-formats.md)).
-- [ ] Cross-check REST/AQL behaviour against the EHRbase sandbox as a test-time oracle.
-- [ ] `anarchie mcp` - stdio MCP server: get/commit/validate/query Compositions for LLM agents, reusing the structured violation output to let an agent self-correct.
+- [x] `anarchie serve` - openEHR REST API (Phase 1 surface from [rest-api.md](rest-api.md)): EHR + Composition CRUD, `If-Match` concurrency. *Built on the blocking `tiny_http` (no async runtime - the single-binary promise holds). `POST /v1/ehr`, `GET /v1/ehr/{id}`, `POST`/`GET`/`PUT …/composition` with `ETag`/`Location` on writes and a `412` on a stale `If-Match`; validation failures surface as `422` with the structured report. The new `anarchie-serve` crate is a thin, data-less translation onto a shared `ops` layer.*
+- [x] AQL endpoint (ad-hoc + stored queries). *`GET /v1/query/aql?q=`, `POST /v1/query/aql` (with `query_parameters`), and `GET /v1/query/{name}[/{version}]`. The query path refreshes the index incrementally first, so a Composition committed over REST is queryable with no separate `index` step.*
+- [x] Template definition endpoints (`GET /v1/definition/template/adl1.4` list + `…/{id}` get). *Example-Composition generation from a template is deferred - it depends on Web Template generation below.*
+- [ ] Web Template generation on template registration; FLAT / STRUCTURED conversion at the REST boundary (see [serialisation-formats.md](serialisation-formats.md)). *Deferred: the renderer-format conversions are a self-contained serialisation workstream; the store and wire format stay canonical JSON for now.*
+- [ ] Cross-check REST/AQL behaviour against the EHRbase sandbox as a test-time oracle. *Deferred (external oracle), like the Archie cross-check in Phase 3.*
+- [x] `anarchie mcp` - stdio MCP server: get/commit/validate/query Compositions for LLM agents, reusing the structured violation output to let an agent self-correct. *JSON-RPC 2.0 over stdio (`initialize`/`tools/list`/`tools/call`); seven tools over the same `ops` layer. A rejected commit returns the validation report in-band (`isError: true`) so the agent can fix and retry.*
 
-**Learning milestone:** can an existing openEHR app or form renderer point at `anarchie serve` and work?
+**Learning milestone:** can an existing openEHR app or form renderer point at `anarchie serve` and work? *Partly answered: the EHR/Composition/AQL core is conformant enough that a client speaking the openEHR REST shapes gets the expected status codes, `ETag`/`If-Match` optimistic concurrency, and an openEHR-style AQL ResultSet - demonstrated end-to-end with curl (create EHR → commit → versioned PUT with If-Match → ad-hoc & stored AQL). The renderer formats (FLAT/STRUCTURED/Web Template) a form renderer would also want are the deferred piece, and the EHRbase cross-check remains the honest next step to quantify "mostly works".*
 
 ---
 

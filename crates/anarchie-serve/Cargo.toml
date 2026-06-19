@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[package]
+name = "anarchie-serve"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "openEHR REST API and MCP server for anarchie"
+
+[dependencies]
+anarchie-rm.workspace = true
+anarchie-store.workspace = true
+anarchie-validate.workspace = true
+anarchie-query.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tiny_http = "0.12.0"
+
+[dev-dependencies]
+tempfile = "3.27.0"

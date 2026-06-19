@@ -137,6 +137,14 @@ enum Command {
         #[command(subcommand)]
         command: QueryCommand,
     },
+    /// Serve the openEHR REST API over HTTP (binds to localhost).
+    Serve {
+        /// Address to bind, as `host:port`.
+        #[arg(long, default_value = "127.0.0.1:8080")]
+        addr: String,
+    },
+    /// Run the stdio MCP server, exposing the store to LLM agents.
+    Mcp,
 }
 
 #[derive(Subcommand)]
@@ -237,6 +245,8 @@ fn main() -> Result<()> {
         Command::Index { rebuild } => index_cmd(rebuild),
         Command::Aql { query, params } => aql_cmd(&query, &params),
         Command::Query { command } => query_cmd(command),
+        Command::Serve { addr } => serve_cmd(&addr),
+        Command::Mcp => mcp_cmd(),
     }
 }
 
@@ -451,6 +461,16 @@ fn query_cmd(command: QueryCommand) -> Result<()> {
             run_aql(&deployment, &aql, &params)
         }
     }
+}
+
+fn serve_cmd(addr: &str) -> Result<()> {
+    let deployment = open_deployment()?;
+    anarchie_serve::serve(deployment, addr).context("running REST server")
+}
+
+fn mcp_cmd() -> Result<()> {
+    let deployment = open_deployment()?;
+    anarchie_serve::run_mcp(deployment).context("running MCP server")
 }
 
 fn print_report(report: &ValidationReport) {
