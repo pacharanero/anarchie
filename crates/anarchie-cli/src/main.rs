@@ -145,6 +145,28 @@ enum Command {
     },
     /// Run the stdio MCP server, exposing the store to LLM agents.
     Mcp,
+    /// Check every stored Composition against the RM (and its template).
+    Fsck {
+        /// Emit the integrity report as JSON.
+        #[arg(long)]
+        json: bool,
+    },
+    /// Install and inspect archetype packs (sets of Operational Templates).
+    Pack {
+        #[command(subcommand)]
+        command: PackCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum PackCommand {
+    /// Install a bundled pack by name (e.g. `ips-core`) or a local directory.
+    Add {
+        /// A bundled pack name or a path to a directory of `*.opt.json` files.
+        source: String,
+    },
+    /// List the bundled packs available to install.
+    List,
 }
 
 #[derive(Subcommand)]
@@ -247,6 +269,8 @@ fn main() -> Result<()> {
         Command::Query { command } => query_cmd(command),
         Command::Serve { addr } => serve_cmd(&addr),
         Command::Mcp => mcp_cmd(),
+        Command::Fsck { json } => fsck_cmd(json),
+        Command::Pack { command } => pack_cmd(command),
     }
 }
 
@@ -466,6 +490,73 @@ fn query_cmd(command: QueryCommand) -> Result<()> {
 fn serve_cmd(addr: &str) -> Result<()> {
     let deployment = open_deployment()?;
     anarchie_serve::serve(deployment, addr).context("running REST server")
+}
+
+fn fsck_cmd(json: bool) -> Result<()> {
+    let deployment = open_deployment()?;
+    let report = deployment.fsck().context("checking store integrity")?;
+    if json {
+        let issues: Vec<_> = report
+            .issues
+            .iter()
+            .map(|i| {
+                serde_json::json!({
+                    "ehr_id": i.ehr_id,
+                    "object_id": i.object_id,
+                    "problems": i.problems,
+                })
+            })
+            .collect();
+        let out = serde_json::json!({
+            "ehrs": report.ehrs,
+            "compositions": report.compositions,
+            "issues": issues,
+        });
+        println!("{}", serde_json::to_string_pretty(&out)?);
+    } else {
+        println!(
+            "Checked {} composition(s) across {} EHR(s)",
+            report.compositions, report.ehrs
+        );
+        for issue in &report.issues {
+            println!("  ✗ {}/{}", issue.ehr_id, issue.object_id);
+            for problem in &issue.problems {
+                println!("      {problem}");
+            }
+        }
+        if report.is_clean() {
+            println!("Store is clean.");
+        } else {
+            println!("{} composition(s) with problems.", report.issues.len());
+        }
+    }
+    if !report.is_clean() {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+fn pack_cmd(command: PackCommand) -> Result<()> {
+    match command {
+        PackCommand::Add { source } => {
+            let deployment = open_deployment()?;
+            let ids = deployment
+                .install_pack(&source)
+                .with_context(|| format!("installing pack `{source}`"))?;
+            println!("Installed {} template(s) from pack `{source}`:", ids.len());
+            for id in &ids {
+                println!("  - {id}");
+            }
+            Ok(())
+        }
+        PackCommand::List => {
+            println!("Bundled packs:");
+            for name in anarchie_store::bundled_packs() {
+                println!("  - {name}");
+            }
+            Ok(())
+        }
+    }
 }
 
 fn mcp_cmd() -> Result<()> {

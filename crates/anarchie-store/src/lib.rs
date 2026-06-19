@@ -9,7 +9,9 @@
 mod config;
 mod deployment;
 mod error;
+mod fsck;
 mod git;
+mod pack;
 mod starter;
 mod template;
 
@@ -19,5 +21,7 @@ pub use deployment::{
     LogEntry,
 };
 pub use error::{Result, StoreError};
+pub use fsck::{FsckIssue, FsckReport};
 pub use git::Git;
+pub use pack::bundled_packs;
 pub use starter::starter_template_ids;

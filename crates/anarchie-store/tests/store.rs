@@ -161,3 +161,31 @@ fn list_ehrs_and_compositions_reflect_what_was_created() {
     let comps = repo.list_compositions().unwrap();
     assert_eq!(comps, vec![outcome.object_id]);
 }
+
+#[test]
+fn fsck_passes_a_valid_store_and_flags_corruption() {
+    let tmp = tempfile::tempdir().unwrap();
+    let deployment =
+        Deployment::init(tmp.path(), DeploymentConfig::new("anarchie.test")).unwrap();
+    let repo = deployment.create_ehr(&audit(ChangeType::Creation, "Create EHR")).unwrap();
+    let outcome = repo
+        .commit_composition(fixture(), None, &audit(ChangeType::Creation, "v1"))
+        .unwrap();
+
+    let clean = deployment.fsck().unwrap();
+    assert_eq!(clean.compositions, 1);
+    assert!(clean.is_clean());
+
+    // Corrupt the head composition on disk; fsck must catch it.
+    let head = repo
+        .path()
+        .join("compositions")
+        .join(&outcome.object_id)
+        .join("composition.json");
+    std::fs::write(&head, "{ \"_type\": \"COMPOSITION\" }\n").unwrap();
+
+    let dirty = deployment.fsck().unwrap();
+    assert!(!dirty.is_clean());
+    assert_eq!(dirty.issues.len(), 1);
+    assert_eq!(dirty.issues[0].object_id, outcome.object_id);
+}

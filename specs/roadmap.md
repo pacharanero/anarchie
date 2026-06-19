@@ -121,15 +121,17 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** explore the interesting collisions.
 
-- [ ] **`sct` integration** - terminology binding validation via the `sct` binary / FHIR `$validate-code`.
-- [ ] **`gitehr` convergence** - investigate one git repository carrying both a gitehr journal/state view and anarchie Compositions over a shared history.
-- [ ] **Archetype packs** - `anarchie pack add <name>` for installable OPT sets, ideally consuming `kam` ([Knowledge Artefacts Package Manager](https://github.com/pacharanero/knowledge-artefacts-package-manager)) packages rather than reinventing packaging (see [bundled-archetypes.md](bundled-archetypes.md)).
-- [ ] **EEHRxF/FHIR projection** - project Compositions into FHIR resources for IPS / EHDS Patient Summary / xDHR implementation guides, as a derived consumer layer (see [regulatory-context.md](regulatory-context.md)). A convenience projection, *not* a certified EHDS gateway.
-- [ ] `anarchie fsck` - full integrity check of the store against the RM.
-- [ ] Distribution: prebuilt binaries, `curl | sh` installer, Homebrew/Scoop - mirroring `sct`'s release pipeline.
-- [ ] Optional `tui` / `gui` for browsing an EHR.
+This phase is **speculative**: most items are integrations with external systems or research questions, deliberately left open. The two self-contained engineering items have landed; the rest are honestly deferred with their rationale.
 
-**Learning milestone:** do the three projects (`sct`, `gitehr`, `anarchie`) actually compose into something greater than the sum?
+- [x] `anarchie fsck` - full integrity check of the store against the RM. *Walks every EHR's head Compositions, parses each as canonical JSON, and validates it against the RM (and its claimed template, if registered), reporting anything that fails to parse or conform and exiting non-zero. Because the files are the system of record, integrity is verifiable at any time independent of the index.*
+- [x] **Archetype packs** - `anarchie pack add <name>` for installable OPT sets (see [bundled-archetypes.md](bundled-archetypes.md)). *MVP: `pack add` installs the bundled `ips-core` pack (the starter set) or every `*.opt.json` in a local directory, and `pack list` shows the bundled packs. The networked registry / `kam` ([Knowledge Artefacts Package Manager](https://github.com/pacharanero/knowledge-artefacts-package-manager)) integration is the next step.*
+- [ ] **`sct` integration** - terminology binding validation via the `sct` binary / FHIR `$validate-code`. *Deferred (external): needs the `sct` binary and an operator-supplied SNOMED licence; the validator already isolates terminology to a future optional backend, so this is an additive seam, not a rework.*
+- [ ] **`gitehr` convergence** - investigate one git repository carrying both a gitehr journal/state view and anarchie Compositions over a shared history. *Deferred (research/external).*
+- [ ] **EEHRxF/FHIR projection** - project Compositions into FHIR resources for IPS / EHDS Patient Summary / xDHR implementation guides, as a derived consumer layer (see [regulatory-context.md](regulatory-context.md)). A convenience projection, *not* a certified EHDS gateway. *Deferred (a self-contained consumer-layer workstream).*
+- [ ] Distribution: prebuilt binaries, `curl | sh` installer, Homebrew/Scoop - mirroring `sct`'s release pipeline. *Deferred (release engineering, not library code).*
+- [ ] Optional `tui` / `gui` for browsing an EHR. *Deferred.*
+
+**Learning milestone:** do the three projects (`sct`, `gitehr`, `anarchie`) actually compose into something greater than the sum? *Open. What this phase established concretely is that the bundling mechanism generalises cleanly to installable packs, and that the file-is-truth design makes a standalone `fsck` trivial and trustworthy. The cross-project composition (terminology via `sct`, history via `gitehr`) remains the genuinely speculative, still-open question.*
 
 ---
 
