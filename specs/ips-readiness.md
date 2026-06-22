@@ -18,7 +18,7 @@ The good news: none of this needs new Reference Model work. The RM types every I
 
 ---
 
-## Layer 1 — content templates (3 of 8)
+## Layer 1 — content templates (4 of 8)
 
 The IPS section set, each mapped to the openEHR archetype that carries it and to the bundled template that should exist. IPS conformance tiers: **R** = required, **r** = recommended, **o** = optional.
 
@@ -26,7 +26,7 @@ The IPS section set, each mapped to the openEHR archetype that carries it and to
 |---|---|---|---|---|
 | Problem List | R | `EVALUATION.problem_diagnosis` | `problem_list.v1` | ✅ shipped |
 | Allergies & Intolerances | R | `EVALUATION.adverse_reaction_risk` | `adverse_reaction_list.v1` | ✅ shipped |
-| Medication Summary | **R** | `EVALUATION.medication_statement` (+ `INSTRUCTION.medication_order`) | `medication_list.v1` | ❌ **missing** |
+| Medication Summary | **R** | `OBSERVATION.medication_statement.v0` (+ `INSTRUCTION.medication_order.v3`) | `medication_list.v1` | ✅ shipped (v0 source) |
 | Vital Signs | r | `OBSERVATION.blood_pressure`, `.pulse`, `.body_temperature`, `.body_weight`, `.height`, … | `vital_signs_encounter.v1` | ✅ shipped |
 | Results (laboratory) | r | `OBSERVATION.laboratory_test_result` (+ `CLUSTER.laboratory_test_analyte`, `CLUSTER.specimen`) | `laboratory_result_report.v1` | ❌ **missing** |
 | History of Procedures | r | `ACTION.procedure` | `procedure_list.v1` | ❌ **missing** |
@@ -34,7 +34,7 @@ The IPS section set, each mapped to the openEHR archetype that carries it and to
 | Medical Devices | r | `EVALUATION.device_summary` / `CLUSTER.device` | (none) | ❌ not in Tier 1 |
 | Encounter scaffold | n/a | `COMPOSITION.encounter` (+ `EVALUATION.clinical_synopsis`) | `encounter_note.v1` | ❌ **missing** |
 
-**The headline gap is the Medication Summary** - it is one of the three *required* IPS sections and is the only required section with no template today. Results, Procedures, and Immunizations are *recommended* and are what make a summary look clinically real in a demo.
+**All three *required* IPS sections - Problems, Allergies, and the Medication Summary - now have templates.** `medication_list.v1` (authored against `OBSERVATION.medication_statement.v0`, which maps to FHIR `MedicationStatement`) closed the last required gap. The remaining gaps are the *recommended* sections - Results, Procedures, and Immunizations - which are what make a summary look clinically real in a demo.
 
 ### What authoring a template costs
 
@@ -43,9 +43,9 @@ The bundled templates are anarchie's own flattened OPT JSON - a tree of `COMPLEX
 Two honest caveats, both inherited from [roadmap.md](roadmap.md):
 
 - **At-codes must be correct against the real CKM archetype**, or a Composition authored to the template will not interoperate with other openEHR systems. The MVP authors these by hand; the durable path is to flatten the curated `.oet` template with Archetype Designer / ADL Workbench / Archie and ingest the resulting `.opt` XML (the open Phase 3 item). Building the missing five is the moment to decide whether to land `.opt` XML ingest first.
-- **Medications and immunisations are an "action" model, not a simple list.** `medication_statement` is the summary-friendly `EVALUATION`; the fuller medication lifecycle (`INSTRUCTION.medication_order` + `ACTION.medication` with `ISM_TRANSITION`) is richer than the problem/allergy list pattern. For an IPS *summary*, `EVALUATION.medication_statement` is the right first target.
+- **Medications and immunisations are an "action"-flavoured model, not a simple list.** The summary-friendly archetype is `OBSERVATION.medication_statement.v0` (it maps cleanly to FHIR `MedicationStatement`); the fuller medication lifecycle (`INSTRUCTION.medication_order.v3` + `ACTION.medication` with `ISM_TRANSITION`) is richer than the problem/allergy list pattern and maps to FHIR `MedicationRequest`. For an IPS *summary*, `medication_statement` is the right target - note it is still at **v0 (draft)** in the CKM, so the bundled template should be re-flattened when it stabilises. `medication_list.v1` was built this way (medication name required; route and clinical indication optional).
 
-**Priority order:** `medication_list` (required) → `laboratory_result_report` → `immunisation_list` → `procedure_list` → `encounter_note`.
+**Priority order for the remaining four:** `laboratory_result_report` → `immunisation_list` → `procedure_list` → `encounter_note`. (`medication_list` - the one required section - is done.)
 
 ---
 
@@ -59,7 +59,7 @@ A minimal one-way exporter is enough to demonstrate IPS. The mapping is direct:
 |---|---|
 | `EVALUATION.problem_diagnosis` | `Condition` (IPS Condition profile) |
 | `EVALUATION.adverse_reaction_risk` | `AllergyIntolerance` |
-| `EVALUATION.medication_statement` | `MedicationStatement` (+ `Medication`) |
+| `OBSERVATION.medication_statement.v0` | `MedicationStatement` (+ `Medication`) |
 | `OBSERVATION.laboratory_test_result` | `Observation` (laboratory) + `DiagnosticReport` |
 | `OBSERVATION.blood_pressure` etc. | `Observation` (vital signs) |
 | `ACTION.procedure` | `Procedure` |
@@ -88,7 +88,7 @@ The IPS profiles bind to SNOMED CT, LOINC, UCUM, and specific value sets. `anarc
 The smallest thing that demonstrates IPS end to end, and a good milestone definition:
 
 1. A synthetic patient whose record contains the **three required sections** - problems, allergies, medications - plus **vital signs** for colour.
-2. Each section stored as a validated openEHR Composition (so it needs `medication_list.v1` - the one required-section template still missing).
+2. Each section stored as a validated openEHR Composition. All four templates this needs (`problem_list.v1`, `adverse_reaction_list.v1`, `medication_list.v1`, `vital_signs_encounter.v1`) now ship in `ips-core`.
 3. `anarchie export-ips <ehr>` producing a FHIR IPS `Bundle` for that patient.
 4. That Bundle passing the HL7 FHIR IPS validator at build time.
 
@@ -98,13 +98,13 @@ Everything beyond that - results, procedures, immunisations, medical devices, th
 
 ## Recommended sequence
 
-1. **Decide the authoring path** for templates: keep hand-authoring minimal OPT JSON for the MVP, or land `.opt` XML ingest (Phase 3 open item) first so the five new templates come from real flattened CKM artefacts. Hand-authoring is faster to a demo; XML ingest is the durable answer.
-2. **Author `medication_list.v1`** (required section) and validate a sample medication-statement Composition against it end to end - the same proof already done for vitals.
-3. **Add `laboratory_result_report.v1`, `immunisation_list.v1`, `procedure_list.v1`, `encounter_note.v1`** to complete the Tier-1 IPS span, growing the `ips-core` pack from 3 templates to 8.
+1. **Decide the authoring path** for the remaining templates: keep hand-authoring minimal OPT JSON for the MVP (as `medication_list.v1` was - authored against the real `medication_statement.v0` at-codes), or land `.opt` XML ingest (Phase 3 open item) first so they come from real flattened CKM artefacts. Hand-authoring is faster to a demo; XML ingest is the durable answer.
+2. ✅ **`medication_list.v1` done** - the required Medication Summary section, validated end to end against a sample medication-statement Composition (the same proof already done for vitals).
+3. **Add `laboratory_result_report.v1`, `immunisation_list.v1`, `procedure_list.v1`, `encounter_note.v1`** to complete the Tier-1 IPS span, growing the `ips-core` pack from 4 templates to 8.
 4. **Build the `anarchie-fhir` projection** and `anarchie export-ips`, validated against the IPS profiles at test time.
 5. **Create the synthetic demo records** in a separate, reusable content repo (see below) and wire a load script (`anarchie init` → `commit` loop).
 
-> **Note on `ips-core` today.** `anarchie pack add ips-core` currently installs the 3-template starter set, not the full 8-section IPS span. Closing Layer 1 is precisely what makes the pack name honest.
+> **Note on `ips-core` today.** `anarchie pack add ips-core` currently installs the 4-template starter set (problems, allergies, medications, vitals), not yet the full 8-section IPS span. Closing Layer 1 is precisely what makes the pack name honest.
 
 ---
 

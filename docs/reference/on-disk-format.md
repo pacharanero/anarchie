@@ -23,10 +23,11 @@ my-cdr
     ├── vital_signs_encounter.v1.opt.json   # bundled starter templates
     ├── problem_list.v1.opt.json            #   (omitted with --minimal)
     ├── adverse_reaction_list.v1.opt.json
+    ├── medication_list.v1.opt.json
     └── attribution.md          # CC-BY-SA provenance for the starter templates
 ```
 
-A default `init` seeds `templates/` with three bundled starter Operational
+A default `init` seeds `templates/` with four bundled starter Operational
 Templates (and an `attribution.md` recording their CC-BY-SA provenance); a
 `--minimal` deployment leaves `templates/` holding only `index.json`.
 

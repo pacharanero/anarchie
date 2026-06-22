@@ -20,15 +20,18 @@ Install the bundled IPS-aligned starter set:
 
 ```bash
 $ anarchie pack add ips-core
-Installed 3 template(s) from pack `ips-core`:
+Installed 4 template(s) from pack `ips-core`:
   - vital_signs_encounter.v1
   - problem_list.v1
   - adverse_reaction_list.v1
+  - medication_list.v1
 ```
 
 `ips-core` is anarchie's bundled, IPS (International Patient Summary) aligned
-starter set - currently the three starter templates `vital_signs_encounter.v1`,
-`problem_list.v1` and `adverse_reaction_list.v1`.
+starter set - currently four starter templates: `vital_signs_encounter.v1`,
+`problem_list.v1`, `adverse_reaction_list.v1`, and `medication_list.v1`
+(the IPS Medication Summary). The remaining Tier-1 IPS sections - laboratory
+results, immunisations, procedures, and an encounter note - are still to come.
 
 Install every `*.opt.json` in a local directory by passing its path:
 

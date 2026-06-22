@@ -1,0 +1,115 @@
+{
+  "template_id": "medication_list.v1",
+  "concept": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "definition": {
+    "type": "COMPLEX",
+    "rm_type": "COMPOSITION",
+    "node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "occurrences": { "lower": 1, "upper": 1 },
+    "attributes": [
+      {
+        "rm_attribute": "content",
+        "existence": { "lower": 1, "upper": 1 },
+        "cardinality": { "interval": { "lower": 0 } },
+        "children": [
+          {
+            "type": "COMPLEX",
+            "rm_type": "OBSERVATION",
+            "node_id": "openEHR-EHR-OBSERVATION.medication_statement.v0",
+            "occurrences": { "lower": 0 },
+            "attributes": [
+              {
+                "rm_attribute": "data",
+                "existence": { "lower": 1, "upper": 1 },
+                "children": [
+                  {
+                    "type": "COMPLEX",
+                    "rm_type": "HISTORY",
+                    "node_id": "at0001",
+                    "occurrences": { "lower": 1, "upper": 1 },
+                    "attributes": [
+                      {
+                        "rm_attribute": "events",
+                        "existence": { "lower": 1 },
+                        "children": [
+                          {
+                            "type": "COMPLEX",
+                            "rm_type": "EVENT",
+                            "node_id": "at0002",
+                            "occurrences": { "lower": 1 },
+                            "attributes": [
+                              {
+                                "rm_attribute": "data",
+                                "existence": { "lower": 1, "upper": 1 },
+                                "children": [
+                                  {
+                                    "type": "COMPLEX",
+                                    "rm_type": "ITEM_TREE",
+                                    "node_id": "at0003",
+                                    "occurrences": { "lower": 1, "upper": 1 },
+                                    "attributes": [
+                                      {
+                                        "rm_attribute": "items",
+                                        "existence": { "lower": 1 },
+                                        "cardinality": { "interval": { "lower": 1 } },
+                                        "children": [
+                                          {
+                                            "type": "COMPLEX",
+                                            "rm_type": "ELEMENT",
+                                            "node_id": "at0006",
+                                            "occurrences": { "lower": 1, "upper": 1 },
+                                            "attributes": [
+                                              {
+                                                "rm_attribute": "value",
+                                                "existence": { "lower": 1, "upper": 1 },
+                                                "children": [{ "type": "C_STRING" }]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "COMPLEX",
+                                            "rm_type": "ELEMENT",
+                                            "node_id": "at0030",
+                                            "occurrences": { "lower": 0, "upper": 1 },
+                                            "attributes": [
+                                              {
+                                                "rm_attribute": "value",
+                                                "existence": { "lower": 1, "upper": 1 },
+                                                "children": [{ "type": "C_STRING" }]
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "type": "COMPLEX",
+                                            "rm_type": "ELEMENT",
+                                            "node_id": "at0023",
+                                            "occurrences": { "lower": 0, "upper": 1 },
+                                            "attributes": [
+                                              {
+                                                "rm_attribute": "value",
+                                                "existence": { "lower": 1, "upper": 1 },
+                                                "children": [{ "type": "C_STRING" }]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

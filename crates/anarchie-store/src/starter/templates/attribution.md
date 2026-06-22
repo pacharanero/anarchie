@@ -37,3 +37,11 @@ Derived from the openEHR International vital-signs OBSERVATION archetypes (each 
 | Source archetype | Concept | Copyright |
 |---|---|---|
 | `openEHR-EHR-EVALUATION.adverse_reaction_risk.v1` | Adverse reaction risk | © NEHTA, openEHR Foundation, HL7 International, Nasjonal IKT |
+
+### `medication_list.v1`
+
+Maps to the FHIR IPS Medication Summary (FHIR `MedicationStatement`). Note the source archetype is at **v0 (draft/unstable)** in the CKM - the medication-statement model has not yet reached a published version - so the bundled template should be re-flattened when it stabilises.
+
+| Source archetype | Concept | Copyright |
+|---|---|---|
+| `openEHR-EHR-OBSERVATION.medication_statement.v0` | Medication use statement | © openEHR Foundation |

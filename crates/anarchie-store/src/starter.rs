@@ -50,6 +50,10 @@ const STARTER_TEMPLATES: &[StarterTemplate] = &[
         id: "adverse_reaction_list.v1",
         json: include_str!("starter/templates/adverse-reaction-list.opt.json"),
     },
+    StarterTemplate {
+        id: "medication_list.v1",
+        json: include_str!("starter/templates/medication-list.opt.json"),
+    },
 ];
 
 /// The `template_id`s of the bundled starter templates, in install order.
@@ -116,4 +120,80 @@ mod tests {
         assert!(deployment.templates_dir().join("attribution.md").exists());
         assert!(!registered.iter().any(|id| id.contains("attribution")));
     }
+
+    /// A medication-statement Composition authored against the real
+    /// `OBSERVATION.medication_statement.v0` at-codes validates against the
+    /// bundled `medication_list.v1` template (the IPS Medication Summary). Locks
+    /// the template's structure/at-codes against regressions.
+    #[test]
+    fn medication_list_template_validates_a_medication_composition() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let deployment =
+            Deployment::init(dir.path(), DeploymentConfig::new("test.local")).expect("init");
+        deployment.install_starter_templates().expect("install");
+
+        let opt = deployment
+            .get_template("medication_list.v1")
+            .expect("load template")
+            .expect("medication_list.v1 registered");
+        let composition =
+            anarchie_rm::from_canonical_str(MEDICATION_COMPOSITION).expect("parse composition");
+
+        let report = anarchie_validate::validate(&composition, Some(&opt));
+        assert!(
+            report.error_count() == 0,
+            "expected a clean validation, got: {:?}",
+            report.violations
+        );
+    }
+
+    const MEDICATION_COMPOSITION: &str = r#"{
+      "_type": "COMPOSITION",
+      "name": { "_type": "DV_TEXT", "value": "Medication list" },
+      "archetype_node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+      "archetype_details": {
+        "_type": "ARCHETYPED",
+        "archetype_id": { "_type": "ARCHETYPE_ID", "value": "openEHR-EHR-COMPOSITION.encounter.v1" },
+        "template_id": { "_type": "TEMPLATE_ID", "value": "medication_list.v1" },
+        "rm_version": "1.1.0"
+      },
+      "language": { "_type": "CODE_PHRASE", "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_639-1" }, "code_string": "en" },
+      "territory": { "_type": "CODE_PHRASE", "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_3166-1" }, "code_string": "GB" },
+      "category": { "_type": "DV_CODED_TEXT", "value": "event", "defining_code": { "_type": "CODE_PHRASE", "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "openehr" }, "code_string": "433" } },
+      "composer": { "_type": "PARTY_IDENTIFIED", "name": "Dr Ada Lovelace" },
+      "content": [
+        {
+          "_type": "OBSERVATION",
+          "name": { "_type": "DV_TEXT", "value": "Medication use statement" },
+          "archetype_node_id": "openEHR-EHR-OBSERVATION.medication_statement.v0",
+          "language": { "_type": "CODE_PHRASE", "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "ISO_639-1" }, "code_string": "en" },
+          "encoding": { "_type": "CODE_PHRASE", "terminology_id": { "_type": "TERMINOLOGY_ID", "value": "IANA_character-sets" }, "code_string": "UTF-8" },
+          "subject": { "_type": "PARTY_SELF" },
+          "data": {
+            "_type": "HISTORY",
+            "name": { "_type": "DV_TEXT", "value": "History" },
+            "archetype_node_id": "at0001",
+            "origin": { "_type": "DV_DATE_TIME", "value": "2025-06-01T09:15:00Z" },
+            "events": [
+              {
+                "_type": "POINT_EVENT",
+                "name": { "_type": "DV_TEXT", "value": "Any event" },
+                "archetype_node_id": "at0002",
+                "time": { "_type": "DV_DATE_TIME", "value": "2025-06-01T09:15:00Z" },
+                "data": {
+                  "_type": "ITEM_TREE",
+                  "name": { "_type": "DV_TEXT", "value": "Tree" },
+                  "archetype_node_id": "at0003",
+                  "items": [
+                    { "_type": "ELEMENT", "name": { "_type": "DV_TEXT", "value": "Medication name" }, "archetype_node_id": "at0006", "value": { "_type": "DV_TEXT", "value": "Amoxicillin 500mg capsules" } },
+                    { "_type": "ELEMENT", "name": { "_type": "DV_TEXT", "value": "Route of administration" }, "archetype_node_id": "at0030", "value": { "_type": "DV_TEXT", "value": "Oral" } },
+                    { "_type": "ELEMENT", "name": { "_type": "DV_TEXT", "value": "Clinical indication" }, "archetype_node_id": "at0023", "value": { "_type": "DV_TEXT", "value": "Chest infection" } }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }"#;
 }

@@ -35,10 +35,11 @@ anarchie init --system-id anarchie.example.org
 ```text
 Initialised anarchie deployment at .
   system_id: anarchie.example.org
-  starter templates (3):
+  starter templates (4):
     - vital_signs_encounter.v1
     - problem_list.v1
     - adverse_reaction_list.v1
+    - medication_list.v1
 ```
 
 The path is echoed back verbatim - the default is `.`, the directory you just
@@ -48,9 +49,10 @@ The `--system-id` is the identity of *this* creating system. It is stamped into
 every `version_uid` so that versions created here are globally distinguishable
 from versions created by any other openEHR system.
 
-A default `init` also seeds three IPS-aligned starter Operational Templates -
-`vital_signs_encounter.v1`, `problem_list.v1`, and `adverse_reaction_list.v1` -
-so the CDR can store clinical data immediately without first authoring a
+A default `init` also seeds four IPS-aligned starter Operational Templates -
+`vital_signs_encounter.v1`, `problem_list.v1`, `adverse_reaction_list.v1`, and
+`medication_list.v1` - so the CDR can store clinical data immediately without
+first authoring a
 template. Pass `--minimal` for an empty CDR with no templates registered; it
 prints `starter templates: none (--minimal)` instead.
 
