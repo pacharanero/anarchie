@@ -26,7 +26,7 @@ $ anarchie ehr list
 You can attach an audit identity to the creation:
 
 ```bash
-anarchie ehr new --committer "Dr A. Clinician" --email a.clinician@example.org
+anarchie ehr new --committer "Dr Ada Lovelace" --email ada@example.org
 ```
 
 ## Commit a Composition
@@ -37,12 +37,12 @@ git commit:
 ```bash
 $ EHR=1b4e28ba-2fa1-11d2-883f-0016d3cca427
 $ anarchie commit "$EHR" vitals.json \
-    --committer "Dr A. Clinician" --email a.clinician@example.org \
+    --committer "Dr Ada Lovelace" --email ada@example.org \
     -m "Admission observations"
-Committed 9f1c…::anarchie.example.org::1
+Committed 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55::anarchie.example.org::1
   object_id:       9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
-  contribution_id: 4d8e…
   commit:          a1b2c3d4…
+  contribution_id: 4d8e…
 ```
 
 What just happened:
@@ -69,8 +69,9 @@ than a brand-new one:
 ```bash
 $ anarchie commit "$EHR" vitals-updated.json \
     --object-id 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55 \
+    --committer "Dr Ada Lovelace" --email ada@example.org \
     -m "Corrected diastolic reading"
-Committed 9f1c…::anarchie.example.org::2
+Committed 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55::anarchie.example.org::2
 ```
 
 The `version_tree_id` is now `2`. The change is recorded as a `Modification`

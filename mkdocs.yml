@@ -55,6 +55,9 @@ nav:
       - The Git-backed Store: walkthrough/the-store.md
       - Inspecting the Files: walkthrough/inspecting-the-files.md
       - Validation and Templates: walkthrough/validation-and-templates.md
+      - Querying with AQL: walkthrough/querying-with-aql.md
+      - The REST API: walkthrough/the-rest-api.md
+      - The MCP Server: walkthrough/the-mcp-server.md
   - Why Build This?:
       - Why anarchie?: why/why-anarchie.md
       - Why git?: why/why-git.md
@@ -69,6 +72,13 @@ nav:
       - anarchie cat: commands/cat.md
       - anarchie log: commands/log.md
       - anarchie diff: commands/diff.md
+      - anarchie index: commands/index.md
+      - anarchie aql: commands/aql.md
+      - anarchie query: commands/query.md
+      - anarchie serve: commands/serve.md
+      - anarchie mcp: commands/mcp.md
+      - anarchie fsck: commands/fsck.md
+      - anarchie pack: commands/pack.md
   - Reference:
       - On-disk Format: reference/on-disk-format.md
       - Versioning and Git: reference/versioning-and-git.md

@@ -19,16 +19,16 @@ anarchie info <file>
 $ anarchie info vitals.json
 Composition: Blood pressure
   archetype:  openEHR-EHR-COMPOSITION.encounter.v1
-  template:   blood_pressure
+  template:   vital_signs_encounter.v1
   rm_version: 1.1.0
   language:   en
   territory:  GB
   category:   event
-  composer:   Dr A. Clinician
+  composer:   Dr Ada Lovelace
   content items: 1
   sections:      0
   entries:       1
-  elements:      4
+  elements:      2
 ```
 
 The section, entry, and element counts come from a real Reference Model

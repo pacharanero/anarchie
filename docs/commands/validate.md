@@ -48,7 +48,6 @@ Validated against its template, with a breach:
 
 ```bash
 $ anarchie validate bad.json --template vital_signs_encounter.v1
-invalid
   [error] /content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/.../value/magnitude (C_DV_QUANTITY)
         magnitude 5000 outside permitted range for units "mm[Hg]"
 ```

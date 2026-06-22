@@ -41,9 +41,9 @@ library such as libgit2. Two reasons:
 
 ## What this gives you today
 
-- Time-travel: reconstruct any historical version with `anarchie cat
+- Time-travel: reconstruct any historical version with `anarchie cat <ehr>
   <version_uid>` (a `git show` under the hood).
-- Meaningful diffs: `anarchie diff` over canonical files shows exactly what
-  changed clinically.
+- Meaningful diffs: `anarchie diff <ehr> <object_id> <a> <b>` over canonical
+  files shows exactly what changed clinically.
 - A real, inspectable audit trail: the committer, timestamp, and change-type of
   every contribution live in the commit graph.

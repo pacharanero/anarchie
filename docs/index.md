@@ -55,8 +55,8 @@ anarchie commit "$EHR" vitals.json -m "Admission observations"
 
     ---
 
-    Validation, storage, and (soon) AQL and the REST API all compile into a
-    single dependency-light binary. The only runtime dependency is the system
+    Validation, storage, AQL, the REST API, and an MCP server all compile into
+    a single dependency-light binary. The only runtime dependency is the system
     `git`.
 
     [:octicons-arrow-right-24: Getting started](walkthrough/getting-started.md)
@@ -67,7 +67,7 @@ anarchie commit "$EHR" vitals.json -m "Admission observations"
 
 ## Status
 
-`anarchie` is an early, in-progress exploration. What works today:
+`anarchie` is an early but already-working exploration. What works today:
 
 - **Reference Model core** - parse, validate the shape of, and canonically
   re-serialise openEHR Compositions (`anarchie info`, `anarchie canonicalise`).
@@ -75,10 +75,22 @@ anarchie commit "$EHR" vitals.json -m "Admission observations"
   committing Compositions as Contributions with full version history
   (`anarchie ehr`, `anarchie commit`, `anarchie cat`, `anarchie log`,
   `anarchie diff`).
+- **Validation** - native RM + Operational Template validation, wired into
+  `commit` so nonconformant data is rejected at the door with a precise openEHR
+  path (`anarchie validate`, `anarchie template`).
+- **Batteries included** - `anarchie init` seeds an IPS-aligned set of starter
+  templates by default; more can be added with `anarchie pack`.
+- **AQL query engine** - a SQLite path-extraction index with an AQL-to-SQL
+  translator, plus ad-hoc and stored queries (`anarchie index`, `anarchie aql`,
+  `anarchie query`).
+- **Services** - the openEHR REST API (`anarchie serve`) and a stdio MCP server
+  for LLM agents (`anarchie mcp`).
+- **Integrity** - `anarchie fsck` re-validates every stored Composition against
+  the RM, independent of the index.
 
-What is designed and on the roadmap: native template/OPT validation, an AQL
-query engine over a derived index, and the openEHR REST API plus an MCP server.
-See the [roadmap](reference/roadmap.md).
+Genuinely still ahead: ingesting `.opt` XML from Archetype Designer, terminology
+binding validation via `sct`, a FHIR / IPS projection, and prebuilt-binary
+distribution. See the [roadmap](reference/roadmap.md).
 
 !!! warning "Not for clinical use"
     `anarchie` is a research and design exploration. It is not a certified or

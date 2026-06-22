@@ -51,6 +51,7 @@ files, you would end up with something very close to openEHR.
 The `sct` analogy gets stretched because SNOMED CT is read-mostly reference
 data, while a CDR is a read-write transactional store. That raises problems
 `sct` never had to solve - validation, AQL, concurrency, and scale - and
-`anarchie` does not hand-wave them. Each has its own design document in the
+`anarchie` does not hand-wave them: each now has working code as well as a
+design document in the
 [specs](https://github.com/pacharanero/anarchie/tree/main/specs), and the
-[roadmap](../reference/roadmap.md) tracks where each one stands.
+[roadmap](../reference/roadmap.md) tracks what is shipped versus deferred.

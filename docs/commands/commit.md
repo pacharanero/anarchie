@@ -18,7 +18,7 @@ anarchie commit <ehr> <file> [--object-id <id>] [--no-validate] \
 | `--no-validate`       | off                    | Skip validation and commit the Composition unchecked.        |
 | `--committer <name>`  | `anarchie`             | Committer name for the audit trail.                          |
 | `--email <email>`     | `anarchie@localhost`   | Committer email for the audit trail.                         |
-| `-m`, `--message`     | `Commit composition`   | Contribution description (the commit subject).               |
+| `-m`, `--message`     | (generated subject)    | Contribution description, used as the commit subject. It surfaces in `anarchie log` and `git log`. When omitted, a generated subject is used (`Create composition <id>`, or `Update composition <id> (vN)` for a new version). |
 
 ## Validation
 
@@ -49,8 +49,8 @@ object_id, and the version is `1`. The change is recorded as a `Creation`.
 $ anarchie commit "$EHR" vitals.json -m "Admission observations"
 Committed 9f1c…::anarchie.example.org::1
   object_id:       9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
-  contribution_id: 4d8e…
   commit:          a1b2c3d4…
+  contribution_id: 4d8e…
 ```
 
 ## New version of an existing Composition

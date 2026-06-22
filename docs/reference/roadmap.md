@@ -42,17 +42,49 @@ non-conformant data never reaches the git history.
 - [anarchie template](../commands/template.md) - register Operational Templates as the schema.
 - See [Validation and Templates](../walkthrough/validation-and-templates.md) for the walkthrough.
 
+### Phase 3.5 - Starter templates
+
+`anarchie init` seeds a deployment with a curated set of bundled starter
+Operational Templates, so a fresh CDR can store real clinical data immediately.
+Pass `--minimal` for an empty CDR.
+
+### Phase 4 - Query (AQL)
+
+A query engine over a path-extraction index - the read model (CQRS),
+rebuildable from the canonical files and never authoritative.
+
+- `anarchie index` - build or refresh the derived query index.
+- `anarchie aql` - run an ad-hoc AQL query against the index.
+- `anarchie query` - register, list, and run stored (named) AQL queries.
+
+### Phase 5 - Services
+
+The store, exposed over the wire.
+
+- `anarchie serve` - the openEHR REST API over HTTP (binds to localhost).
+- `anarchie mcp` - a stdio MCP server exposing the store to LLM agents.
+
+### Phase 6 - Archetype packs
+
+Sets of Operational Templates, installable as a unit.
+
+- `anarchie pack add` - install a bundled pack by name or from a local directory.
+- `anarchie pack list` - list the bundled packs available to install.
+
 ## :material-hammer-wrench: Designed and planned
 
-| Phase | Theme               | Highlights                                                        |
-| ----- | ------------------- | ----------------------------------------------------------------- |
-| 3.5   | Starter templates   | `anarchie init` yields a CDR that can store real clinical data immediately. |
-| 4     | Query (AQL)         | SQLite path index, an AQL parser, and AQL → SQL translation; a DuckDB/Parquet analytics path. |
-| 5     | Services            | `anarchie serve` (openEHR REST API) and `anarchie mcp` (stdio MCP server for LLM agents). |
-| 6     | Integration         | `sct` terminology binding, `gitehr` convergence, archetype packs, FHIR projection. |
+| Theme                  | Highlights                                                        |
+| ---------------------- | ---------------------------------------------------------------- |
+| Analytics              | A DuckDB/Parquet path alongside the AQL engine for column-oriented analytics. |
+| Template ingest        | Ingesting `.opt` XML exported from Archetype Designer / the ADL Workbench. |
+| Terminology            | `sct` SNOMED CT terminology binding. |
+| Convergence            | `gitehr` convergence. |
+| Projection             | FHIR / IPS projection of stored data. |
+| Distribution           | Prebuilt-binary distribution. |
+| Interfaces             | A TUI / GUI over the store. |
 
 No phase depends on a later phase to be useful. Each is intended to teach
 something - the next big open question being how much of AQL a DuckDB-over-JSON
-approach can handle before a bespoke engine is unavoidable (Phase 4). The
-Archie conformance-corpus cross-check from Phase 3 remains a deferred,
-test-time-only exercise.
+approach can handle before a bespoke engine is unavoidable. The Archie
+conformance-corpus cross-check from Phase 3 remains a deferred, test-time-only
+exercise.
