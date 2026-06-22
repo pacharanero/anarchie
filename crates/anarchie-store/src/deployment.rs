@@ -377,6 +377,20 @@ impl EhrRepo {
         }
         write_file(&abs, &anarchie_rm::to_canonical_string(&composition)?)?;
 
+        // The commit subject is the audit description - openEHR's
+        // AUDIT_DETAILS.description - so `git log` and `anarchie log` read in the
+        // committer's own words. With no description supplied we fall back to a
+        // generated summary that still records create-vs-update and the version.
+        let description = if audit.description.trim().is_empty() {
+            if version_tree_id == 1 {
+                format!("Create composition {object_id}")
+            } else {
+                format!("Update composition {object_id} (v{version_tree_id})")
+            }
+        } else {
+            audit.description.clone()
+        };
+
         let contribution_id = Uuid::new_v4().to_string();
         let contrib_rel = format!("contributions/{contribution_id}-contrib.json");
         let contrib_abs = self.path.join(&contrib_rel);
@@ -398,20 +412,15 @@ impl EhrRepo {
                 },
                 time_committed: audit.time_committed.clone(),
                 change_type: audit.change_type.as_str().to_string(),
-                description: audit.description.clone(),
+                description: description.clone(),
             },
         };
         write_file(&contrib_abs, &to_pretty_json(&manifest)?)?;
 
         self.git.add(&rel)?;
         self.git.add(&contrib_rel)?;
-        let message = if version_tree_id == 1 {
-            format!("Create composition {object_id}")
-        } else {
-            format!("Update composition {object_id} (v{version_tree_id})")
-        };
         let sha = self.git.commit(
-            &message,
+            &description,
             &audit.committer_name,
             &audit.committer_email,
             &audit.time_committed,

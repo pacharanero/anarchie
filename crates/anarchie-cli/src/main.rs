@@ -66,9 +66,10 @@ enum Command {
         /// Committer email for the audit trail.
         #[arg(long, default_value = "anarchie@localhost")]
         email: String,
-        /// Contribution description (the commit subject).
-        #[arg(long, short = 'm', default_value = "Commit composition")]
-        message: String,
+        /// Contribution description, used as the commit subject. Defaults to a
+        /// generated summary (e.g. "Create composition <id>") when omitted.
+        #[arg(long, short = 'm')]
+        message: Option<String>,
         /// Skip validation and commit even if the composition is nonconformant.
         #[arg(long)]
         no_validate: bool,
@@ -247,7 +248,7 @@ fn main() -> Result<()> {
             object_id,
             &committer,
             &email,
-            &message,
+            message,
             no_validate,
         ),
         Command::Validate {
@@ -325,7 +326,7 @@ fn commit(
     object_id: Option<String>,
     committer: &str,
     email: &str,
-    message: &str,
+    message: Option<String>,
     no_validate: bool,
 ) -> Result<()> {
     let deployment = open_deployment()?;
@@ -336,7 +337,7 @@ fn commit(
     } else {
         ChangeType::Creation
     };
-    let audit = Audit::now(committer, email, change_type, message);
+    let audit = Audit::now(committer, email, change_type, message.as_deref().unwrap_or(""));
     let result = if no_validate {
         repo.commit_composition_unchecked(composition, object_id, &audit)
     } else {

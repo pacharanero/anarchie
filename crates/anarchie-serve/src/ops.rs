@@ -70,7 +70,9 @@ impl Default for Committer {
         Self {
             name: "anarchie".into(),
             email: "anarchie@localhost".into(),
-            description: "REST commit".into(),
+            // Empty: the store then derives a "Create/Update composition <id>"
+            // commit subject, which reads better in `log` than a generic label.
+            description: String::new(),
         }
     }
 }

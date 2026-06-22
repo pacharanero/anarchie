@@ -102,6 +102,31 @@ fn second_commit_increments_the_version_tree_id() {
 }
 
 #[test]
+fn audit_description_becomes_the_commit_subject() {
+    let tmp = tempfile::tempdir().unwrap();
+    let deployment =
+        Deployment::init(tmp.path(), DeploymentConfig::new("anarchie.test")).unwrap();
+    let repo = deployment.create_ehr(&audit(ChangeType::Creation, "Create EHR")).unwrap();
+
+    // A supplied description is used verbatim as the commit subject (and so
+    // surfaces in `log` and `git log`), per the openEHR AUDIT_DETAILS mapping.
+    let described = repo
+        .commit_composition(fixture(), None, &audit(ChangeType::Creation, "Admission observations"))
+        .unwrap();
+    // An empty description falls back to a generated, version-aware summary.
+    repo.commit_composition(
+        fixture(),
+        Some(described.object_id.clone()),
+        &audit(ChangeType::Modification, ""),
+    )
+    .unwrap();
+
+    let history = repo.log(&described.object_id).unwrap();
+    assert_eq!(history[0].subject, "Update composition {} (v2)".replace("{}", &described.object_id));
+    assert_eq!(history[1].subject, "Admission observations");
+}
+
+#[test]
 fn cat_version_reconstructs_an_older_version_from_git() {
     let tmp = tempfile::tempdir().unwrap();
     let deployment =
