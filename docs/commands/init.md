@@ -21,14 +21,18 @@ anarchie init [path] [--system-id <id>] [--minimal]
 $ anarchie init --system-id anarchie.example.org
 Initialised anarchie deployment at .
   system_id: anarchie.example.org
-  starter templates (4):
+  starter templates (8):
     - vital_signs_encounter.v1
     - problem_list.v1
     - adverse_reaction_list.v1
     - medication_list.v1
+    - laboratory_result_report.v1
+    - immunisation_list.v1
+    - procedure_list.v1
+    - encounter_note.v1
 ```
 
-By default `init` seeds the deployment with 4 bundled starter Operational
+By default `init` seeds the deployment with 8 bundled starter Operational
 Templates, so the CDR can store clinical data immediately. Pass `--minimal` for
 an empty CDR with no templates registered (it prints `starter templates: none
 (--minimal)`). The `Initialised ... at` line echoes the path argument verbatim -

@@ -45,3 +45,35 @@ Maps to the FHIR IPS Medication Summary (FHIR `MedicationStatement`). Note the s
 | Source archetype | Concept | Copyright |
 |---|---|---|
 | `openEHR-EHR-OBSERVATION.medication_statement.v0` | Medication use statement | © openEHR Foundation |
+
+### `laboratory_result_report.v1`
+
+Maps to the FHIR IPS Results section (FHIR `Observation` / `DiagnosticReport`).
+
+| Source archetype | Concept | Copyright |
+|---|---|---|
+| `openEHR-EHR-OBSERVATION.laboratory_test_result.v1` | Laboratory test result | © openEHR Foundation, and others (see CKM) |
+
+### `immunisation_list.v1`
+
+Maps to the FHIR IPS Immunizations section (FHIR `Immunization`). Built on the generic medication-management ACTION used for vaccine administration per the IPS.
+
+| Source archetype | Concept | Copyright |
+|---|---|---|
+| `openEHR-EHR-ACTION.medication.v1` | Medication management | © openEHR Foundation, and others (see CKM) |
+
+### `procedure_list.v1`
+
+Maps to the FHIR IPS History of Procedures section (FHIR `Procedure`).
+
+| Source archetype | Concept | Copyright |
+|---|---|---|
+| `openEHR-EHR-ACTION.procedure.v1` | Procedure | © openEHR Foundation, and others (see CKM) |
+
+### `encounter_note.v1`
+
+A free-text clinical synopsis for an encounter (maps toward the FHIR IPS narrative).
+
+| Source archetype | Concept | Copyright |
+|---|---|---|
+| `openEHR-EHR-EVALUATION.clinical_synopsis.v1` | Clinical Synopsis | © openEHR Foundation |

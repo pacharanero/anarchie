@@ -1,0 +1,74 @@
+{
+  "template_id": "immunisation_list.v1",
+  "concept": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "definition": {
+    "type": "COMPLEX",
+    "rm_type": "COMPOSITION",
+    "node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "occurrences": { "lower": 1, "upper": 1 },
+    "attributes": [
+      {
+        "rm_attribute": "content",
+        "existence": { "lower": 1, "upper": 1 },
+        "cardinality": { "interval": { "lower": 0 } },
+        "children": [
+          {
+            "type": "COMPLEX",
+            "rm_type": "ACTION",
+            "node_id": "openEHR-EHR-ACTION.medication.v1",
+            "occurrences": { "lower": 0 },
+            "attributes": [
+              {
+                "rm_attribute": "description",
+                "existence": { "lower": 1, "upper": 1 },
+                "children": [
+                  {
+                    "type": "COMPLEX",
+                    "rm_type": "ITEM_TREE",
+                    "node_id": "at0017",
+                    "occurrences": { "lower": 1, "upper": 1 },
+                    "attributes": [
+                      {
+                        "rm_attribute": "items",
+                        "existence": { "lower": 1 },
+                        "cardinality": { "interval": { "lower": 1 } },
+                        "children": [
+                          {
+                            "type": "COMPLEX",
+                            "rm_type": "ELEMENT",
+                            "node_id": "at0020",
+                            "occurrences": { "lower": 1, "upper": 1 },
+                            "attributes": [
+                              {
+                                "rm_attribute": "value",
+                                "existence": { "lower": 1, "upper": 1 },
+                                "children": [{ "type": "C_STRING" }]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "COMPLEX",
+                            "rm_type": "ELEMENT",
+                            "node_id": "at0156",
+                            "occurrences": { "lower": 0, "upper": 1 },
+                            "attributes": [
+                              {
+                                "rm_attribute": "value",
+                                "existence": { "lower": 1, "upper": 1 },
+                                "children": [{ "type": "C_STRING" }]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

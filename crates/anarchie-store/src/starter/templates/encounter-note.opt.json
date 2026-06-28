@@ -1,0 +1,61 @@
+{
+  "template_id": "encounter_note.v1",
+  "concept": "openEHR-EHR-COMPOSITION.encounter.v1",
+  "definition": {
+    "type": "COMPLEX",
+    "rm_type": "COMPOSITION",
+    "node_id": "openEHR-EHR-COMPOSITION.encounter.v1",
+    "occurrences": { "lower": 1, "upper": 1 },
+    "attributes": [
+      {
+        "rm_attribute": "content",
+        "existence": { "lower": 1, "upper": 1 },
+        "cardinality": { "interval": { "lower": 0 } },
+        "children": [
+          {
+            "type": "COMPLEX",
+            "rm_type": "EVALUATION",
+            "node_id": "openEHR-EHR-EVALUATION.clinical_synopsis.v1",
+            "occurrences": { "lower": 0 },
+            "attributes": [
+              {
+                "rm_attribute": "data",
+                "existence": { "lower": 1, "upper": 1 },
+                "children": [
+                  {
+                    "type": "COMPLEX",
+                    "rm_type": "ITEM_TREE",
+                    "node_id": "at0001",
+                    "occurrences": { "lower": 1, "upper": 1 },
+                    "attributes": [
+                      {
+                        "rm_attribute": "items",
+                        "existence": { "lower": 1 },
+                        "cardinality": { "interval": { "lower": 1 } },
+                        "children": [
+                          {
+                            "type": "COMPLEX",
+                            "rm_type": "ELEMENT",
+                            "node_id": "at0002",
+                            "occurrences": { "lower": 1, "upper": 1 },
+                            "attributes": [
+                              {
+                                "rm_attribute": "value",
+                                "existence": { "lower": 1, "upper": 1 },
+                                "children": [{ "type": "C_STRING" }]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

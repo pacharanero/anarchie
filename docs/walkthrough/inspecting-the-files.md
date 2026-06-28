@@ -26,9 +26,13 @@ my-cdr
 └── templates
     ├── adverse_reaction_list.v1.opt.json
     ├── attribution.md
+    ├── encounter_note.v1.opt.json
+    ├── immunisation_list.v1.opt.json
     ├── index.json
+    ├── laboratory_result_report.v1.opt.json
     ├── medication_list.v1.opt.json
     ├── problem_list.v1.opt.json
+    ├── procedure_list.v1.opt.json
     └── vital_signs_encounter.v1.opt.json
 ```
 

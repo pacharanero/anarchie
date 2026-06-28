@@ -10,7 +10,7 @@ This document chases down the gap between what `anarchie` does today and a convi
 
 A working IPS demo needs all three, in order:
 
-1. **Content templates** - openEHR Operational Templates to author and validate each IPS section's content. *Partially present: 3 of the 8 Tier-1 templates.*
+1. **Content templates** - openEHR Operational Templates to author and validate each IPS section's content. *Complete: all 8 Tier-1 templates now ship in `ips-core`.*
 2. **A FHIR IPS projection** - a derived consumer that turns Compositions into a FHIR IPS Bundle. *Not built (roadmap Phase 6).*
 3. **Terminology** - the SNOMED CT / LOINC / etc. codes and value sets the IPS profiles require. *Deliberately not bundled; binding validation deferred to `sct`.*
 
@@ -18,7 +18,7 @@ The good news: none of this needs new Reference Model work. The RM types every I
 
 ---
 
-## Layer 1 — content templates (4 of 8)
+## Layer 1 — content templates (8 of 8, complete)
 
 The IPS section set, each mapped to the openEHR archetype that carries it and to the bundled template that should exist. IPS conformance tiers: **R** = required, **r** = recommended, **o** = optional.
 
@@ -28,13 +28,13 @@ The IPS section set, each mapped to the openEHR archetype that carries it and to
 | Allergies & Intolerances | R | `EVALUATION.adverse_reaction_risk` | `adverse_reaction_list.v1` | ✅ shipped |
 | Medication Summary | **R** | `OBSERVATION.medication_statement.v0` (+ `INSTRUCTION.medication_order.v3`) | `medication_list.v1` | ✅ shipped (v0 source) |
 | Vital Signs | r | `OBSERVATION.blood_pressure`, `.pulse`, `.body_temperature`, `.body_weight`, `.height`, … | `vital_signs_encounter.v1` | ✅ shipped |
-| Results (laboratory) | r | `OBSERVATION.laboratory_test_result` (+ `CLUSTER.laboratory_test_analyte`, `CLUSTER.specimen`) | `laboratory_result_report.v1` | ❌ **missing** |
-| History of Procedures | r | `ACTION.procedure` | `procedure_list.v1` | ❌ **missing** |
-| Immunizations | r | `ACTION.medication` (vaccine) | `immunisation_list.v1` | ❌ **missing** |
+| Results (laboratory) | r | `OBSERVATION.laboratory_test_result.v1` (+ `CLUSTER.laboratory_test_analyte`, `CLUSTER.specimen`) | `laboratory_result_report.v1` | ✅ shipped |
+| History of Procedures | r | `ACTION.procedure.v1` | `procedure_list.v1` | ✅ shipped |
+| Immunizations | r | `ACTION.medication.v1` (vaccine) | `immunisation_list.v1` | ✅ shipped |
+| Encounter scaffold | n/a | `COMPOSITION.encounter` (+ `EVALUATION.clinical_synopsis.v1`) | `encounter_note.v1` | ✅ shipped |
 | Medical Devices | r | `EVALUATION.device_summary` / `CLUSTER.device` | (none) | ❌ not in Tier 1 |
-| Encounter scaffold | n/a | `COMPOSITION.encounter` (+ `EVALUATION.clinical_synopsis`) | `encounter_note.v1` | ❌ **missing** |
 
-**All three *required* IPS sections - Problems, Allergies, and the Medication Summary - now have templates.** `medication_list.v1` (authored against `OBSERVATION.medication_statement.v0`, which maps to FHIR `MedicationStatement`) closed the last required gap. The remaining gaps are the *recommended* sections - Results, Procedures, and Immunizations - which are what make a summary look clinically real in a demo.
+**Layer 1 is complete: all eight Tier-1 templates now ship in `ips-core`.** That spans all three *required* IPS sections (Problems, Allergies, Medications) plus the recommended Vital Signs, Results, Procedures, and Immunizations, and an encounter-note scaffold. Each was authored against the real CKM archetype at-codes and is covered by a validation regression test (a sample Composition validates against the template). The only Tier-1 section still unbundled is **Medical Devices** (a recommended section), deliberately deferred.
 
 ### What authoring a template costs
 
@@ -42,10 +42,10 @@ The bundled templates are anarchie's own flattened OPT JSON - a tree of `COMPLEX
 
 Two honest caveats, both inherited from [roadmap.md](roadmap.md):
 
-- **At-codes must be correct against the real CKM archetype**, or a Composition authored to the template will not interoperate with other openEHR systems. The MVP authors these by hand; the durable path is to flatten the curated `.oet` template with Archetype Designer / ADL Workbench / Archie and ingest the resulting `.opt` XML (the open Phase 3 item). Building the missing five is the moment to decide whether to land `.opt` XML ingest first.
+- **At-codes must be correct against the real CKM archetype**, or a Composition authored to the template will not interoperate with other openEHR systems. The eight bundled templates were hand-authored against the real at-codes (read straight from the published ADL); the durable path for re-generating them is to flatten the curated `.oet` template with Archetype Designer / ADL Workbench / Archie and ingest the resulting `.opt` XML (the open Phase 3 item).
 - **Medications and immunisations are an "action"-flavoured model, not a simple list.** The summary-friendly archetype is `OBSERVATION.medication_statement.v0` (it maps cleanly to FHIR `MedicationStatement`); the fuller medication lifecycle (`INSTRUCTION.medication_order.v3` + `ACTION.medication` with `ISM_TRANSITION`) is richer than the problem/allergy list pattern and maps to FHIR `MedicationRequest`. For an IPS *summary*, `medication_statement` is the right target - note it is still at **v0 (draft)** in the CKM, so the bundled template should be re-flattened when it stabilises. `medication_list.v1` was built this way (medication name required; route and clinical indication optional).
 
-**Priority order for the remaining four:** `laboratory_result_report` → `immunisation_list` → `procedure_list` → `encounter_note`. (`medication_list` - the one required section - is done.)
+All eight Tier-1 templates are built. The Layer-1 follow-ups are now optional polish: landing `.opt` XML ingest to re-generate them from CKM artefacts, adding the Medical Devices section, and enriching the minimal templates (e.g. the laboratory analyte/result-value cluster) beyond their name-and-summary fields.
 
 ---
 
@@ -92,19 +92,18 @@ The smallest thing that demonstrates IPS end to end, and a good milestone defini
 3. `anarchie export-ips <ehr>` producing a FHIR IPS `Bundle` for that patient.
 4. That Bundle passing the HL7 FHIR IPS validator at build time.
 
-Everything beyond that - results, procedures, immunisations, medical devices, the optional sections - widens coverage but is not needed to *prove the pattern*.
+Results, procedures, and immunisations now also ship as templates, so they can join the demo for a richer record; medical devices and the optional sections remain beyond this minimal milestone.
 
 ---
 
 ## Recommended sequence
 
-1. **Decide the authoring path** for the remaining templates: keep hand-authoring minimal OPT JSON for the MVP (as `medication_list.v1` was - authored against the real `medication_statement.v0` at-codes), or land `.opt` XML ingest (Phase 3 open item) first so they come from real flattened CKM artefacts. Hand-authoring is faster to a demo; XML ingest is the durable answer.
-2. ✅ **`medication_list.v1` done** - the required Medication Summary section, validated end to end against a sample medication-statement Composition (the same proof already done for vitals).
-3. **Add `laboratory_result_report.v1`, `immunisation_list.v1`, `procedure_list.v1`, `encounter_note.v1`** to complete the Tier-1 IPS span, growing the `ips-core` pack from 4 templates to 8.
-4. **Build the `anarchie-fhir` projection** and `anarchie export-ips`, validated against the IPS profiles at test time.
-5. **Create the synthetic demo records** in a separate, reusable content repo (see below) and wire a load script (`anarchie init` → `commit` loop).
+1. ✅ **Tier-1 templates done** - all eight `ips-core` templates are built and validated end to end against sample Compositions, covering every required IPS section (and most recommended ones).
+2. **Build the `anarchie-fhir` projection** and `anarchie export-ips`, validated against the IPS profiles with the HL7 FHIR validator at test time. This is now the critical-path gap to a *demonstrable* IPS.
+3. **Create the synthetic demo records** in a separate, reusable content repo (see below) and wire a load script (`anarchie init` → `commit` loop).
+4. **Optional Layer-1 polish:** land `.opt` XML ingest to re-generate the templates from CKM artefacts, add the Medical Devices section, and enrich the minimal templates (e.g. lab result-value clusters, structured dose/timing).
 
-> **Note on `ips-core` today.** `anarchie pack add ips-core` currently installs the 4-template starter set (problems, allergies, medications, vitals), not yet the full 8-section IPS span. Closing Layer 1 is precisely what makes the pack name honest.
+> **Note on `ips-core` today.** `anarchie pack add ips-core` now installs the full 8-template Tier-1 IPS span - all three required sections plus the recommended Vital Signs, Results, Procedures, and Immunizations. The remaining gap to a *demonstrable* IPS is the FHIR projection (Layer 2), not the content models.
 
 ---
 
