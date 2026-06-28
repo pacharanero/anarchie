@@ -80,7 +80,7 @@ Sets of Operational Templates, installable as a unit.
 | Terminology            | `sct` SNOMED CT terminology binding. |
 | Convergence            | `gitehr` convergence. |
 | Projection             | FHIR / IPS projection of stored data. |
-| Distribution           | Prebuilt-binary distribution. |
+| Distribution           | `cargo install` and a `curl \| sh` one-liner work today (see [Install](../install.md)); prebuilt binaries (cargo-dist), Homebrew, Windows installers, and `.deb` / `.rpm` are planned. |
 | Interfaces             | A TUI / GUI over the store. |
 
 No phase depends on a later phase to be useful. Each is intended to teach

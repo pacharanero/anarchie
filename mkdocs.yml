@@ -48,6 +48,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Install: install.md
   - Walkthrough:
       - Overview: walkthrough/index.md
       - Getting Started: walkthrough/getting-started.md

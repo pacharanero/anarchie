@@ -88,6 +88,20 @@ The artefact at the centre - the directory of canonical Composition JSON - is qu
 
 ---
 
+## Install
+
+```sh
+# one-liner (builds from source via cargo for now; prebuilt binaries on the roadmap)
+curl -LsSf https://pacharanero.github.io/anarchie/install.sh | sh
+
+# or, with Rust installed:
+cargo install --git https://github.com/pacharanero/anarchie anarchie-cli --locked
+```
+
+The only runtime dependency is the system `git`. More channels - Homebrew, Windows, `.deb`/`.rpm`, and more - are on the [installation page](https://pacharanero.github.io/anarchie/install/).
+
+---
+
 ## Status
 
 ⚙️ **Working and experimental.** The Reference Model, the git-backed store, native RM + Operational Template validation, the AQL query engine, the openEHR REST API, the stdio MCP server, store `fsck`, and installable archetype packs are all implemented and runnable today. The [specs in specs/](specs/) capture the architecture and the open questions; the [roadmap](specs/roadmap.md) tracks what is shipped versus deferred. This remains a learning and design exploration - **not a certified or production CDR, and not for use with real patient data.** Feedback and challenge welcome.
