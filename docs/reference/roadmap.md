@@ -5,9 +5,9 @@ optimises for *learning something at each step* and for *always having a working
 artefact*, rather than racing to feature-completeness. Each phase produces
 something runnable and inspectable.
 
-The authoritative, checkbox-level roadmap lives in
+The detailed roadmap - and the open and deferred work - lives in
 [specs/roadmap.md](https://github.com/pacharanero/anarchie/blob/main/specs/roadmap.md).
-This page is a reader-friendly summary of where things stand.
+This page is a reader-friendly summary of what has shipped and what is planned.
 
 ## :material-check-circle:{ .mdx-pulse } Shipped
 
@@ -44,9 +44,11 @@ non-conformant data never reaches the git history.
 
 ### Phase 3.5 - Starter templates
 
-`anarchie init` seeds a deployment with a curated set of bundled starter
-Operational Templates, so a fresh CDR can store real clinical data immediately.
-Pass `--minimal` for an empty CDR.
+`anarchie init` seeds a deployment with a curated, IPS-aligned set of bundled
+starter Operational Templates - the full Tier-1 International Patient Summary
+span (vital signs, problems, allergies, medications, laboratory results,
+immunisations, procedures, and an encounter note) - so a fresh CDR can store
+real clinical data immediately. Pass `--minimal` for an empty CDR.
 
 ### Phase 4 - Query (AQL)
 
@@ -64,27 +66,28 @@ The store, exposed over the wire.
 - `anarchie serve` - the openEHR REST API over HTTP (binds to localhost).
 - `anarchie mcp` - a stdio MCP server exposing the store to LLM agents.
 
-### Phase 6 - Archetype packs
+### Phase 6 - Integrity and packs
 
-Sets of Operational Templates, installable as a unit.
+Store integrity checking, and sets of Operational Templates installable as a unit.
 
-- `anarchie pack add` - install a bundled pack by name or from a local directory.
+- `anarchie fsck` - re-validate every stored Composition against the RM (and its template), independent of the index.
+- `anarchie pack add` - install a bundled pack (e.g. `ips-core`) by name or from a local directory.
 - `anarchie pack list` - list the bundled packs available to install.
 
 ## :material-hammer-wrench: Designed and planned
 
 | Theme                  | Highlights                                                        |
 | ---------------------- | ---------------------------------------------------------------- |
+| Conformance            | Cross-check the validator against Archie, and the REST/AQL layer against the EHRbase sandbox - test-time oracles only. |
 | Analytics              | A DuckDB/Parquet path alongside the AQL engine for column-oriented analytics. |
 | Template ingest        | Ingesting `.opt` XML exported from Archetype Designer / the ADL Workbench. |
+| Serialisation          | Web Template generation, and FLAT / STRUCTURED conversion at the REST boundary. |
 | Terminology            | `sct` SNOMED CT terminology binding. |
 | Convergence            | `gitehr` convergence. |
 | Projection             | FHIR / IPS projection of stored data. |
-| Distribution           | `cargo install` and a `curl \| sh` one-liner work today (see [Install](../install.md)); prebuilt binaries (cargo-dist), Homebrew, Windows installers, and `.deb` / `.rpm` are planned. |
+| Distribution           | `cargo install` and a `curl \| sh` one-liner work today (see [Install](../install.md)); the crates.io publish is wired up (fires on the first tag), and prebuilt binaries (cargo-dist), Homebrew, Windows installers, and `.deb` / `.rpm` are planned. |
 | Interfaces             | A TUI / GUI over the store. |
 
-No phase depends on a later phase to be useful. Each is intended to teach
+No item depends on a later one to be useful. Each is intended to teach
 something - the next big open question being how much of AQL a DuckDB-over-JSON
-approach can handle before a bespoke engine is unavoidable. The Archie
-conformance-corpus cross-check from Phase 3 remains a deferred, test-time-only
-exercise.
+approach can handle before a bespoke engine is unavoidable.

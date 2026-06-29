@@ -53,6 +53,17 @@ The deliberate scope cut: **`anarchie` consumes Operational Templates, it does n
 
 ---
 
+## How the two layers are walked
+
+The two contracts are checked against two *different* views of the same Composition. This split was not designed up front - it emerged from implementing the validator - but it turned out to be the natural shape:
+
+- **RM invariants are checked against the typed `rm` tree.** The universal rules that hold for *every* Composition regardless of archetype - `CODE_PHRASE` completeness, the `ELEMENT` value-XOR-`null_flavour` rule, `DV_QUANTITY` magnitude/`magnitude_status`, `DV_PROPORTION` kind/denominator - are expressed most naturally by matching on the Rust enums, so RM validation walks the deserialised structs.
+- **Template constraints are checked against the canonical JSON, guided by the AOM tree.** The OPT walk matches `C_COMPLEX_OBJECT` children by `archetype_node_id`, enforces occurrences / existence / cardinality, and applies the leaf constraints (`C_DV_QUANTITY` units + magnitude range, `C_CODE_PHRASE` terminology + code set, `C_STRING` value list, `C_DV_ORDINAL`).
+
+The key insight: **the AOM names RM attributes as strings, and those strings map directly onto canonical-JSON keys.** So walking the constraint tree over a `serde_json::Value` is dramatically simpler than reflecting archetype-specific constraints over the typed enums. The rule of thumb that emerged: **the typed tree is right for universal invariants; the JSON tree is right for archetype-specific constraints.**
+
+---
+
 ## What RM validation must check (non-exhaustive)
 
 - Every object's `_type` is a known RM type and appears where the RM permits it.
