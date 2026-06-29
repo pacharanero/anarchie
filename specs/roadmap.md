@@ -31,7 +31,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** represent and round-trip openEHR data faithfully. Nothing else works without this.
 
-- [x] `anarchie-rm`: Rust types for the core RM (`COMPOSITION`, `SECTION`, `OBSERVATION`, `EVALUATION`, `INSTRUCTION`, `ACTION`, `CLUSTER`, `ELEMENT`, the `DV_*` data values).
+- [x] `rm`: Rust types for the core RM (`COMPOSITION`, `SECTION`, `OBSERVATION`, `EVALUATION`, `INSTRUCTION`, `ACTION`, `CLUSTER`, `ELEMENT`, the `DV_*` data values).
 - [x] `serde` (de)serialisation to/from openEHR **canonical JSON**.
 - [x] **Byte-stable canonical serialisation** - the hard dependency; prove a round-trip is idempotent and diff-friendly.
 - [x] `anarchie info <composition.json>` - inspect any Composition file.
@@ -51,7 +51,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 - [x] `anarchie cat`, `anarchie log` (head via filesystem, history via git).
 - [x] `anarchie diff v1 v2` - git diff + a structural layer.
 
-**Learning milestone:** does the CONTRIBUTION-as-commit mapping feel natural in practice, and does git stay legible? *Yes - the commit graph reads cleanly: each contribution is one commit carrying `anarchie-contribution-id` / `anarchie-change-type` / `anarchie-system-id` trailers, `git log -- <path>` is the version history, and because canonical JSON is byte-stable a re-commit of identical content diffs to just the `version_uid` bump. The `anarchie-store` crate shells out to the system `git` (no libgit2), keeping the binary light and the repo an ordinary git repo. Open question deferred to Phase 4: the contribution manifest omits its own commit sha (a commit cannot contain its own hash); the contribution-to-commit link is the trailer, resolved at read time.*
+**Learning milestone:** does the CONTRIBUTION-as-commit mapping feel natural in practice, and does git stay legible? *Yes - the commit graph reads cleanly: each contribution is one commit carrying `anarchie-contribution-id` / `anarchie-change-type` / `anarchie-system-id` trailers, `git log -- <path>` is the version history, and because canonical JSON is byte-stable a re-commit of identical content diffs to just the `version_uid` bump. The `store` module shells out to the system `git` (no libgit2), keeping the binary light and the repo an ordinary git repo. Open question deferred to Phase 4: the contribution manifest omits its own commit sha (a commit cannot contain its own hash); the contribution-to-commit link is the trailer, resolved at read time.*
 
 
 ---
@@ -60,15 +60,15 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** reject invalid data at the door; become a real CDR rather than a JSON folder.
 
-- [x] `anarchie-aom` - constraint types (Archetype Object Model).
-- [x] `anarchie-opt` - parse a flattened Operational Template into an AOM tree.
+- [x] `aom` - constraint types (Archetype Object Model).
+- [x] `opt` - parse a flattened Operational Template into an AOM tree.
 - [x] `anarchie template add` - register templates as the schema.
-- [x] `anarchie-validate` - RM + OPT tree-walk producing structured violations.
+- [x] `validate` - RM + OPT tree-walk producing structured violations.
 - [x] Wire validation into the commit path (invalid → rejected).
 - [ ] Ingest real `.opt` XML (Archetype Designer / ADL Workbench export) into the AOM tree, in addition to anarchie's native flattened-JSON form (see [serialisation-formats.md](serialisation-formats.md)).
 - [ ] Cross-check harness against Archie (JVM as a *test-time* oracle only). *Deferred to a later iteration: it needs the JVM toolchain and a curated conformance corpus, and is independent of the validator's own design.*
 
-**Learning milestone:** can a pure-Rust validator agree with Archie on the conformance test corpus? This is the project's biggest risk and biggest learning. *Partly answered, partly deferred. The architecture that emerged: RM validation walks the **typed** Reference Model tree (`anarchie-rm` structs) checking invariants that hold for every Composition (CODE_PHRASE completeness, ELEMENT value-XOR-null_flavour, DV_QUANTITY `magnitude_status`, DV_PROPORTION kind/denominator), while OPT validation walks the **canonical JSON** guided by the AOM constraint tree - matching `C_COMPLEX_OBJECT` children by `archetype_node_id`, enforcing occurrences / existence / cardinality, and applying leaf constraints (`C_DV_QUANTITY` units + magnitude range, `C_CODE_PHRASE` terminology + code set, `C_STRING` value list, `C_DV_ORDINAL`). The key insight: the AOM names RM attributes as **strings** that map directly onto JSON keys, so the OPT walk over `serde_json::Value` is dramatically simpler than trying to reflect over typed enums - the typed tree is right for universal invariants, the JSON tree is right for archetype-specific constraints. The Archie cross-check (the actual corpus-agreement question) is deferred; what is proven now is that the validator catches real breaches end-to-end (an out-of-range systolic is rejected at `anarchie commit` with a precise openEHR path) and that valid data round-trips clean. Operational Templates are anarchie's own native flattened-JSON form for now; ingesting `.opt` XML from Archetype Designer is future work.*
+**Learning milestone:** can a pure-Rust validator agree with Archie on the conformance test corpus? This is the project's biggest risk and biggest learning. *Partly answered, partly deferred. The architecture that emerged: RM validation walks the **typed** Reference Model tree (`rm` structs) checking invariants that hold for every Composition (CODE_PHRASE completeness, ELEMENT value-XOR-null_flavour, DV_QUANTITY `magnitude_status`, DV_PROPORTION kind/denominator), while OPT validation walks the **canonical JSON** guided by the AOM constraint tree - matching `C_COMPLEX_OBJECT` children by `archetype_node_id`, enforcing occurrences / existence / cardinality, and applying leaf constraints (`C_DV_QUANTITY` units + magnitude range, `C_CODE_PHRASE` terminology + code set, `C_STRING` value list, `C_DV_ORDINAL`). The key insight: the AOM names RM attributes as **strings** that map directly onto JSON keys, so the OPT walk over `serde_json::Value` is dramatically simpler than trying to reflect over typed enums - the typed tree is right for universal invariants, the JSON tree is right for archetype-specific constraints. The Archie cross-check (the actual corpus-agreement question) is deferred; what is proven now is that the validator catches real breaches end-to-end (an out-of-range systolic is rejected at `anarchie commit` with a precise openEHR path) and that valid data round-trips clean. Operational Templates are anarchie's own native flattened-JSON form for now; ingesting `.opt` XML from Archetype Designer is future work.*
 
 ---
 
@@ -78,7 +78,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 - [x] Curate the Tier 1 template set from openEHR International archetypes (see [bundled-archetypes.md](bundled-archetypes.md)). *The full Tier-1 IPS span, eight templates: `vital_signs_encounter` (blood pressure, pulse, temperature, respiration, weight, height), `problem_list` (`EVALUATION.problem_diagnosis`), `adverse_reaction_list` (`EVALUATION.adverse_reaction_risk`), `medication_list` (`OBSERVATION.medication_statement.v0`, v0/draft), `laboratory_result_report` (`OBSERVATION.laboratory_test_result.v1`), `immunisation_list` (`ACTION.medication.v1`), `procedure_list` (`ACTION.procedure.v1`), and `encounter_note` (`EVALUATION.clinical_synopsis.v1`) - covering all three required IPS sections (problems, allergies, medications) plus the recommended ones. See [ips-readiness.md](ips-readiness.md).*
 - [x] Build the OPTs as anarchie's native flattened OPT JSON. *Hand-authored against the real archetype at-codes for the MVP; the build-time flatten via Archetype Designer / ADL Workbench / Archie remains the path once `.opt` XML ingest lands (Phase 3 open item).*
-- [x] Dual-license: code **AGPL-3.0-or-later**, bundled OPTs under **CC-BY-SA 3.0** with a provenance manifest (see [licensing.md](licensing.md)). *`crates/anarchie-store/src/starter/templates/attribution.md` records per-template provenance and the ShareAlike notice, embedded in the binary and written into each deployment's `templates/` alongside the installed models so the licence travels with the data.*
+- [x] Dual-license: code **AGPL-3.0-or-later**, bundled OPTs under **CC-BY-SA 3.0** with a provenance manifest (see [licensing.md](licensing.md)). *`src/store/starter/templates/attribution.md` records per-template provenance and the ShareAlike notice, embedded in the binary and written into each deployment's `templates/` alongside the installed models so the licence travels with the data.*
 - [x] `anarchie init` installs the starter set by default; `--minimal` yields an empty CDR.
 - [ ] Verify CKM Terms of Use wording and quote it in the bundle attribution before shipping. *Packaging-time step; deferred until a release is cut.*
 
@@ -90,7 +90,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** answer population queries, not just id lookups.
 
-- [x] `anarchie index` - flatten Compositions into a path-value table in SQLite (`anarchie-query`, bundled `rusqlite`, no runtime dependency).
+- [x] `anarchie index` - flatten Compositions into a path-value table in SQLite (`query`, bundled `rusqlite`, no runtime dependency).
 - [x] Index freshness tracking; `--rebuild` backstop. *The index stores each EHR's last-indexed git HEAD in an `ehr_freshness` table; a plain `anarchie index` re-indexes only EHRs whose HEAD moved, and `--rebuild` drops and rebuilds the lot. Freshness lives in the derived index, not the manifest, keeping the read model self-describing and disposable.*
 - [x] AQL parser (hand-written Rust lexer + recursive-descent parser) for the MVP subset - `SELECT` of leaf paths and aggregates, `FROM … CONTAINS …`, `WHERE` (comparisons, `MATCHES`, `LIKE`, `EXISTS`, `AND`/`OR`/`NOT`), `ORDER BY`, `LIMIT`/`OFFSET`, `$`-parameters.
 - [x] AQL → SQL translation over the path index. *The index keys every leaf by its composition-rooted canonical path and tags each row with its ENTRY archetype, so an identified path resolves to an exact `path` lookup and `CONTAINS OBSERVATION o[id]` to an exact `entry_archetype` match - no JSON walking at query time. Comparisons/aggregates become correlated `EXISTS`/sub-selects over `path_value`.*
@@ -106,7 +106,7 @@ Each phase produces something runnable and inspectable. No phase depends on a la
 
 **Goal:** interoperate with the existing openEHR ecosystem and with AI agents.
 
-- [x] `anarchie serve` - openEHR REST API (Phase 1 surface from [rest-api.md](rest-api.md)): EHR + Composition CRUD, `If-Match` concurrency. *Built on the blocking `tiny_http` (no async runtime - the single-binary promise holds). `POST /v1/ehr`, `GET /v1/ehr/{id}`, `POST`/`GET`/`PUT …/composition` with `ETag`/`Location` on writes and a `412` on a stale `If-Match`; validation failures surface as `422` with the structured report. The new `anarchie-serve` crate is a thin, data-less translation onto a shared `ops` layer.*
+- [x] `anarchie serve` - openEHR REST API (Phase 1 surface from [rest-api.md](rest-api.md)): EHR + Composition CRUD, `If-Match` concurrency. *Built on the blocking `tiny_http` (no async runtime - the single-binary promise holds). `POST /v1/ehr`, `GET /v1/ehr/{id}`, `POST`/`GET`/`PUT …/composition` with `ETag`/`Location` on writes and a `412` on a stale `If-Match`; validation failures surface as `422` with the structured report. The `serve` module is a thin, data-less translation onto a shared `ops` layer.*
 - [x] AQL endpoint (ad-hoc + stored queries). *`GET /v1/query/aql?q=`, `POST /v1/query/aql` (with `query_parameters`), and `GET /v1/query/{name}[/{version}]`. The query path refreshes the index incrementally first, so a Composition committed over REST is queryable with no separate `index` step.*
 - [x] Template definition endpoints (`GET /v1/definition/template/adl1.4` list + `…/{id}` get). *Example-Composition generation from a template is deferred - it depends on Web Template generation below.*
 - [ ] Web Template generation on template registration; FLAT / STRUCTURED conversion at the REST boundary (see [serialisation-formats.md](serialisation-formats.md)). *Deferred: the renderer-format conversions are a self-contained serialisation workstream; the store and wire format stay canonical JSON for now.*

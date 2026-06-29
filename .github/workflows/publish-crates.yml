@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Publish to crates.io
+
+# Publishes the `anarchie` crate to crates.io on a v<version> tag.
+#
+# Trigger it by pushing a tag from your terminal:
+#
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# (A tag pushed from a developer terminal triggers this; a tag pushed by the
+# default GITHUB_TOKEN would not, hence the auto-tag cascade uses workflow_call.)
+#
+# Requires the CARGO_REGISTRY_TOKEN repository secret.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_call:
+
+jobs:
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+
+      - name: Cache Cargo registry and build artefacts
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-publish-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-publish-
+
+      - name: Build and test (gate before publishing)
+        run: |
+          cargo build --release
+          cargo test
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish

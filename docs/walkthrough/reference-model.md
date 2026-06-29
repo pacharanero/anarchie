@@ -1,7 +1,7 @@
 # The Reference Model
 
-Before storing anything, `anarchie` has to understand it. The
-`anarchie-rm` crate is a native Rust model of the openEHR Reference Model with a
+Before storing anything, `anarchie` has to understand it. anarchie's
+`rm` module is a native Rust model of the openEHR Reference Model with a
 **canonical JSON** reader and writer. Two features fall straight out of it and
 are useful on their own, without a repository.
 

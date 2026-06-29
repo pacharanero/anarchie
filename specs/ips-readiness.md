@@ -69,7 +69,7 @@ A minimal one-way exporter is enough to demonstrate IPS. The mapping is direct:
 
 Design notes:
 
-- **Shape:** a new `anarchie-fhir` crate and an `anarchie export-ips <ehr>` command (and a future `GET …/ips` REST endpoint) that walks an EHR's head Compositions, maps each ENTRY to its FHIR resource, and assembles a `Bundle` of type `document` with an IPS `Composition` and the mandated sections.
+- **Shape:** a new `fhir` module and an `anarchie export-ips <ehr>` command (and a future `GET …/ips` REST endpoint) that walks an EHR's head Compositions, maps each ENTRY to its FHIR resource, and assembles a `Bundle` of type `document` with an IPS `Composition` and the mandated sections.
 - **Scope discipline:** this is a *convenience projection, not a certified EHDS/EEHRxF gateway* - exactly the line drawn in [regulatory-context.md](regulatory-context.md). One-way (openEHR → FHIR) is enough for a demo; round-tripping is explicitly out of scope.
 - **Validation of the output:** the demo is far more convincing if the emitted Bundle validates against the IPS profiles with the HL7 FHIR validator (a build/test-time oracle, like Archie for openEHR validation - never a runtime dependency).
 

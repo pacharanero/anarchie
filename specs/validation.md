@@ -28,26 +28,26 @@ There are two ways to validate against a template:
 
 ---
 
-## Component breakdown (Rust crates/modules)
+## Component breakdown (Rust modules)
 
 ```
-anarchie-rm        the Reference Model as Rust types + deserialisation
+rm        the Reference Model as Rust types + deserialisation
    │                (COMPOSITION, SECTION, OBSERVATION, ELEMENT, DV_* ...)
    ▼
-anarchie-aom       Archetype Object Model: the constraint types
+aom       Archetype Object Model: the constraint types
    │                (C_OBJECT, C_ATTRIBUTE, C_DV_QUANTITY, occurrences ...)
    ▼
-anarchie-opt       parse an Operational Template (XML or JSON) into an AOM tree
+opt       parse an Operational Template (XML or JSON) into an AOM tree
    │
    ▼
-anarchie-validate  walk a COMPOSITION against an OPT constraint tree,
+validate  walk a COMPOSITION against an OPT constraint tree,
                    accumulating a structured list of violations
 ```
 
-- **`anarchie-rm`** is the foundation: faithful Rust structs/enums for the RM, with `serde` (de)serialisation to/from canonical JSON. This is also what the on-disk files deserialise into, so it is shared with the storage layer.
-- **`anarchie-aom`** models constraints. The Archetype Object Model is the type system for "what is allowed".
-- **`anarchie-opt`** turns a published OPT (Operational Templates are distributed as XML; a JSON form also exists) into an in-memory AOM tree. An OPT is already *flattened* (all specialisation and slot-filling resolved), which is a deliberate simplification: `anarchie` validates against OPTs, **not** raw ADL archetypes, so it never needs to implement archetype flattening.
-- **`anarchie-validate`** is the engine: given an RM instance and an AOM tree, produce a list of violations (or an empty list = valid).
+- **`rm`** is the foundation: faithful Rust structs/enums for the RM, with `serde` (de)serialisation to/from canonical JSON. This is also what the on-disk files deserialise into, so it is shared with the storage layer.
+- **`aom`** models constraints. The Archetype Object Model is the type system for "what is allowed".
+- **`opt`** turns a published OPT (Operational Templates are distributed as XML; a JSON form also exists) into an in-memory AOM tree. An OPT is already *flattened* (all specialisation and slot-filling resolved), which is a deliberate simplification: `anarchie` validates against OPTs, **not** raw ADL archetypes, so it never needs to implement archetype flattening.
+- **`validate`** is the engine: given an RM instance and an AOM tree, produce a list of violations (or an empty list = valid).
 
 The deliberate scope cut: **`anarchie` consumes Operational Templates, it does not author or flatten archetypes.** ADL parsing, specialisation, and template flattening are the Archetype Designer's and ADL Workbench's job. By starting from a flattened OPT, the validation problem shrinks dramatically.
 
@@ -113,7 +113,7 @@ Some constraints bind to external terminologies (SNOMED CT, LOINC, openEHR-inter
 Validation correctness is non-negotiable, so it is anchored to external truth rather than our own assumptions:
 
 - **The openEHR conformance test suite / CDR test data** - reuse the community's published valid and invalid Composition examples. The formal cases live in [openEHR/specifications-CNF](https://github.com/openEHR/specifications-CNF).
-- **Cross-check against Archie** at *development* time (not runtime): a test harness runs the same Composition through both Archie and `anarchie-validate` and asserts the verdicts agree. Disagreements are bugs to investigate. This gives us a JVM oracle without a JVM dependency in the shipped binary.
+- **Cross-check against Archie** at *development* time (not runtime): a test harness runs the same Composition through both Archie and `validate` and asserts the verdicts agree. Disagreements are bugs to investigate. This gives us a JVM oracle without a JVM dependency in the shipped binary.
 - **Cross-check REST/AQL behaviour against a reference CDR** - the public [EHRbase sandbox](https://sandkiste.ehrbase.org/) is a convenient behavioural oracle for the *server* layer: submit the same template, Composition, and AQL to both and compare responses. Like Archie, it is a development-time reference only, never a runtime dependency.
 - **Property-based tests** that generate RM instances from a template and assert they validate, and mutate them to assert they fail.
 

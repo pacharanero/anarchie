@@ -2,7 +2,7 @@
 
 The openEHR Reference Model has roughly 120 types across several packages. `anarchie` does not need all of them at once - a CDR that stores and validates Compositions needs the Composition, Data Structures, Data Types, and core identification types first, and can defer the demographics-adjacent and change-control machinery that git already subsumes.
 
-This document is the running coverage tracker: which RM types are implemented in `anarchie-rm` today, and which are deferred and why. It is the practical answer to the Phase 1 learning question ("can we represent real Compositions losslessly?") and the place to look before assuming a type exists.
+This document is the running coverage tracker: which RM types are implemented in `rm` today, and which are deferred and why. It is the practical answer to the Phase 1 learning question ("can we represent real Compositions losslessly?") and the place to look before assuming a type exists.
 
 Legend: **done** = implemented with canonical-JSON round-trip; **partial** = present with a known gap; **deferred** = intentionally not yet modelled.
 
@@ -45,7 +45,7 @@ Legend: **done** = implemented with canonical-JSON round-trip; **partial** = pre
 | `DV_PARSABLE` | done | |
 | `DV_MULTIMEDIA` | done | |
 | `DV_URI` / `DV_EHR_URI` | done | |
-| `DV_INTERVAL<T>` | deferred | Constraint-side `Interval<T>` exists in `anarchie-aom`; the data-value `DV_INTERVAL` is not yet modelled |
+| `DV_INTERVAL<T>` | deferred | Constraint-side `Interval<T>` exists in `aom`; the data-value `DV_INTERVAL` is not yet modelled |
 | `CODE_PHRASE` | done | |
 | `TERM_MAPPING` | done | |
 | `REFERENCE_RANGE<T>` | deferred | |

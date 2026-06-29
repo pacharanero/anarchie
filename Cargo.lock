@@ -3,99 +3,20 @@
 version = 3
 
 [[package]]
-name = "anarchie-aom"
-version = "0.0.0"
+name = "anarchie"
+version = "0.1.0"
 dependencies = [
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "anarchie-cli"
-version = "0.0.0"
-dependencies = [
- "anarchie-query",
- "anarchie-rm",
- "anarchie-serve",
- "anarchie-store",
- "anarchie-validate",
  "anyhow",
  "clap",
- "serde_json",
-]
-
-[[package]]
-name = "anarchie-opt"
-version = "0.0.0"
-dependencies = [
- "anarchie-aom",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "anarchie-query"
-version = "0.0.0"
-dependencies = [
- "anarchie-rm",
- "anarchie-store",
+ "jiff",
  "rusqlite",
  "serde",
  "serde_json",
  "tempfile",
  "thiserror",
-]
-
-[[package]]
-name = "anarchie-rm"
-version = "0.0.0"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "anarchie-serve"
-version = "0.0.0"
-dependencies = [
- "anarchie-query",
- "anarchie-rm",
- "anarchie-store",
- "anarchie-validate",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
  "tiny_http",
-]
-
-[[package]]
-name = "anarchie-store"
-version = "0.0.0"
-dependencies = [
- "anarchie-rm",
- "anarchie-validate",
- "jiff",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
  "toml",
  "uuid",
-]
-
-[[package]]
-name = "anarchie-validate"
-version = "0.0.0"
-dependencies = [
- "anarchie-aom",
- "anarchie-opt",
- "anarchie-rm",
- "serde",
- "serde_json",
 ]
 
 [[package]]

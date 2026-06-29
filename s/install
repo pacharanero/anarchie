@@ -2,14 +2,13 @@
 # SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# Install the `anarchie` binary from this workspace.
+# Install the `anarchie` binary from this repository.
 #
-# The workspace root is a virtual manifest, so `cargo install --path .` fails.
-# This installs the CLI package (crates/anarchie-cli), which provides the
-# `anarchie` binary. Any extra arguments are passed through to cargo install
-# (for example: `s/install --locked`).
+# anarchie is a single crate at the repository root, so this is a plain
+# `cargo install --path .`. Any extra arguments are passed through to cargo
+# install (for example: `s/install --locked`).
 
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-exec cargo install --path crates/anarchie-cli "$@"
+exec cargo install --path . "$@"

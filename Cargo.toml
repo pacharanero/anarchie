@@ -1,33 +1,22 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-[workspace]
-resolver = "2"
-members = [
-    "crates/anarchie-rm",
-    "crates/anarchie-aom",
-    "crates/anarchie-opt",
-    "crates/anarchie-validate",
-    "crates/anarchie-store",
-    "crates/anarchie-query",
-    "crates/anarchie-serve",
-    "crates/anarchie-cli",
-]
-
-[workspace.package]
-version = "0.0.0"
+[package]
+name = "anarchie"
+version = "0.1.0"
 edition = "2021"
 rust-version = "1.80"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/pacharanero/anarchie"
 authors = ["The anarchie contributors"]
+description = "A local-first, git-native, flat-file openEHR clinical data repository (CDR)"
+homepage = "https://pacharanero.github.io/anarchie"
+keywords = ["openehr", "ehr", "cdr", "healthcare", "git"]
+categories = ["command-line-utilities", "database-implementations"]
 
-[workspace.dependencies]
-anarchie-rm = { path = "crates/anarchie-rm" }
-anarchie-aom = { path = "crates/anarchie-aom" }
-anarchie-opt = { path = "crates/anarchie-opt" }
-anarchie-validate = { path = "crates/anarchie-validate" }
-anarchie-store = { path = "crates/anarchie-store" }
-anarchie-query = { path = "crates/anarchie-query" }
-anarchie-serve = { path = "crates/anarchie-serve" }
+# A single crate that builds both the `anarchie` library (the layered modules)
+# and the `anarchie` binary (a thin CLI over them). src/lib.rs and src/main.rs
+# are auto-detected.
+
+[dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }
 thiserror = "2.0.16"
@@ -36,3 +25,8 @@ clap = { version = "4.6.1", features = ["derive"] }
 uuid = { version = "1.23.2", features = ["v4", "serde"] }
 toml = "1.1.1"
 jiff = "0.2.28"
+rusqlite = { version = "0.40.1", features = ["bundled"] }
+tiny_http = "0.12.0"
+
+[dev-dependencies]
+tempfile = "3.27.0"

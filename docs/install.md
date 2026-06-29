@@ -18,10 +18,10 @@ This is the recommended way in, and the command is stable. Today it builds anarc
 If you already have Rust, install straight from the repository - this is the simplest route for the current technical audience:
 
 ```sh
-cargo install --git https://github.com/pacharanero/anarchie anarchie-cli --locked
+cargo install --git https://github.com/pacharanero/anarchie anarchie --locked
 ```
 
-The package is `anarchie-cli`; it installs a binary called `anarchie`. Once anarchie is published to [crates.io](https://crates.io) this shortens to:
+Once anarchie is published to [crates.io](https://crates.io) this shortens to:
 
 ```sh
 cargo install anarchie   # planned
@@ -32,7 +32,7 @@ cargo install anarchie   # planned
 ```sh
 git clone https://github.com/pacharanero/anarchie
 cd anarchie
-s/install                # cargo install --path crates/anarchie-cli
+s/install                # cargo install --path .
 ```
 
 `s/install` passes extra arguments through to `cargo install` (e.g. `s/install --locked`).
@@ -53,7 +53,7 @@ anarchie will follow a *bump-on-`main`, CI-does-the-rest* release model: a maint
 | Channel | Command | Status |
 |---|---|---|
 | One-liner | `curl -LsSf …/install.sh \| sh` | available (builds from source); prebuilt binaries **planned** |
-| Cargo (git) | `cargo install --git … anarchie-cli` | available |
+| Cargo (git) | `cargo install --git … anarchie` | available |
 | Cargo (crates.io) | `cargo install anarchie` | planned |
 | cargo-binstall | `cargo binstall anarchie` | planned |
 | Homebrew (macOS / Linux) | `brew install pacharanero/tap/anarchie` | planned |

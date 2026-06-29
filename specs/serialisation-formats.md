@@ -22,7 +22,7 @@ Canonical JSON with `_type` discriminators is the spine. Everything else is a tr
 
 ## Canonical JSON (the spine)
 
-Already specified in [on-disk-format.md](on-disk-format.md): RM-faithful JSON with `_type` discriminators, serialised deterministically (stable key order, normalised number and whitespace formatting) so that semantically identical Compositions are byte-identical, diffs are minimal, and a content hash is a stable identity. This is what `serde` produces from the `anarchie-rm` types, and byte-stability is the hard dependency of the whole design.
+Already specified in [on-disk-format.md](on-disk-format.md): RM-faithful JSON with `_type` discriminators, serialised deterministically (stable key order, normalised number and whitespace formatting) so that semantically identical Compositions are byte-identical, diffs are minimal, and a content hash is a stable identity. This is what `serde` produces from the `rm` types, and byte-stability is the hard dependency of the whole design.
 
 ```json
 { "_type": "DV_QUANTITY", "magnitude": 120.0, "units": "mm[Hg]" }

@@ -14,7 +14,7 @@
 set -eu
 
 REPO="https://github.com/pacharanero/anarchie"
-CRATE="anarchie-cli" # the package that provides the `anarchie` binary
+CRATE="anarchie" # the package that provides the `anarchie` binary
 
 if ! command -v cargo >/dev/null 2>&1; then
 	cat >&2 <<EOF

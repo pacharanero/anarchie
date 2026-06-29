@@ -95,7 +95,7 @@ The artefact at the centre - the directory of canonical Composition JSON - is qu
 curl -LsSf https://pacharanero.github.io/anarchie/install.sh | sh
 
 # or, with Rust installed:
-cargo install --git https://github.com/pacharanero/anarchie anarchie-cli --locked
+cargo install --git https://github.com/pacharanero/anarchie anarchie --locked
 ```
 
 The only runtime dependency is the system `git`. More channels - Homebrew, Windows, `.deb`/`.rpm`, and more - are on the [installation page](https://pacharanero.github.io/anarchie/install/).
