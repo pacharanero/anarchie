@@ -29,7 +29,7 @@ jobs:
           components: clippy, rustfmt
 
       - name: Cache Cargo registry and build artefacts
-        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: cargo fmt --check
         run: cargo fmt --check
@@ -57,7 +57,7 @@ jobs:
           tool: cargo-llvm-cov
 
       - name: Cache Cargo registry and build artefacts
-        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       # Measures line/region/function coverage and writes the summary table to
       # the job summary. Not gated on a threshold yet - it reports the number.
