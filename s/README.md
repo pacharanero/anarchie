@@ -21,6 +21,10 @@ A release build of the `anarchie` binary (`cargo build --release`).
 
 Install the local build onto your `PATH` (`cargo install --path .`). Forwards arguments, e.g. `s/install --locked`.
 
+## `s/install-hooks`
+
+Opt in to the tracked pre-commit hook in `.githooks/` that runs `s/lint`. One-off, per checkout.
+
 ## `s/docs`
 
 Serve the documentation site locally with live reload (`zensical serve`).

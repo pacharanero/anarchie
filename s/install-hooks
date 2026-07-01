@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Opt in to the tracked git hooks in .githooks/ (a pre-commit hook that runs
+# s/lint). One-off; per checkout.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+git config core.hooksPath .githooks
+echo "Git hooks installed: core.hooksPath=.githooks"
