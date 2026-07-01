@@ -133,6 +133,7 @@ The only runtime dependency is the system `git`. More channels - Homebrew, Windo
 | Layer | Material | Licence |
 |---|---|---|
 | **Code** | the `anarchie` binary and our source | **AGPL-3.0-or-later** |
+| **Our written content** | this README, the docs site, and our specs prose | **CC-BY-SA-4.0** |
 | **Specifications** | openEHR RM/AOM/ADL/OPT/AQL | **CC-BY-ND 3.0** - *implemented, never redistributed* |
 | **Archetypes / OPTs** | bundled openEHR International models | **CC-BY-SA 3.0** - in a separate directory with attribution |
 | **Terminology** | SNOMED CT, LOINC, ICD content | **not bundled** - only the *bindings* ship; bring your own terminology licence |

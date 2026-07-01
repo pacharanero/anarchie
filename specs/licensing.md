@@ -1,6 +1,6 @@
 # Licensing
 
-`anarchie` combines four kinds of material, each governed by a different licence. Conflating them is the most common licensing mistake in the openEHR ecosystem, so this document fixes the approach explicitly and tells contributors exactly how to label each part. **This is design-time understanding, not legal advice** - verify wording against the upstream sources at packaging time.
+`anarchie` combines several kinds of material, each governed by a different licence. Conflating them is the most common licensing mistake in the openEHR ecosystem, so this document fixes the approach explicitly and tells contributors exactly how to label each part. The distinction that trips people up most is between the openEHR *specifications* (CC-BY-ND, which we implement but never redistribute) and our *own* documentation and specs prose (CC-BY-SA-4.0) - two entirely separate works that happen to describe the same system. **This is design-time understanding, not legal advice** - verify wording against the upstream sources at packaging time.
 
 ---
 
@@ -9,6 +9,7 @@
 | Layer | What it is | Licence | Why |
 |---|---|---|---|
 | **Code** | The `anarchie` Rust binary and all source we write | **AGPL-3.0-or-later** | Strong copyleft: a hosted/networked CDR must share its source, keeping the project and its derivatives open. |
+| **Our own documentation** | The README, the docs site, and our specs prose (this file included) | **CC-BY-SA-4.0** | Our first-party writing, under the house-style content licence. Distinct from the openEHR specifications below, which we implement but never redistribute. |
 | **openEHR specifications** | RM, AOM, ADL, OPT, AQL normative docs | **CC-BY-ND 3.0** (NoDerivs) — *not redistributed* | We *implement* the specs; we never ship modified copies of them. NoDerivs therefore does not constrain us. |
 | **Clinical archetypes / OPTs** | The bundled openEHR International models ([bundled-archetypes.md](bundled-archetypes.md)) | **CC-BY-SA 3.0** (ShareAlike) | ShareAlike explicitly permits redistribution and derivatives (OPT generation), with attribution and share-alike. |
 | **Terminology** | SNOMED CT, LOINC, ICD code *content* | **Not bundled at all** | We ship only the *bindings* (code references inside archetypes), never the terminology content. The operator brings their own terminology licence. |
@@ -33,6 +34,7 @@
 - NoDerivs forbids distributing *modified versions of the specification documents*. It does **not** forbid implementing them - copyright protects the document's expression, not the ideas or the interoperability interface it describes.
 - **Therefore:** `anarchie` *implements* these specifications in original code. We do **not** copy spec prose, diagrams, or normative tables into the repo. Where we need to reference a spec, we **link** to the canonical `specifications.openehr.org` URL and cite it; we do not vendor the text.
 - Any short quotation for explanatory purposes stays within fair-dealing/fair-use limits, is clearly attributed, and is never a wholesale reproduction.
+- **Not to be confused with our own writing.** The specifications above are a third-party work under CC-BY-ND. The documentation *we* write - this repository's README, the `docs/` site, and the `specs/` prose (including this file) - is our own first-party material under **CC-BY-SA-4.0** (the house-style content licence). Sharing and adapting our docs is welcome under CC-BY-SA-4.0's attribution and share-alike terms; that licence has no bearing on the openEHR specifications, which we never redistribute.
 
 ## 3. Archetypes / OPTs — CC-BY-SA 3.0 (bundled as data, segregated from code)
 

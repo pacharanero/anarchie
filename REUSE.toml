@@ -4,21 +4,28 @@ version = 1
 # lockfile, test fixtures, config). Source files (.rs, shell, YAML) carry their
 # own two-line header; this file covers the rest.
 #
-# anarchie's own written content and config is under the project code licence
-# for now. Reconciling that with the house-style CC-BY-SA-4.0 content licence is
-# a tracked roadmap item (see specs/roadmap.md, "House-style conformance").
+# anarchie's own written prose - the README, the docs site, and the specs - is
+# the house-style content licence, CC-BY-SA-4.0. Code-adjacent config and data
+# (manifests, the lockfile, ignore files, sample CDR, fixtures) stay under the
+# project code licence, AGPL-3.0-or-later.
 
 [[annotations]]
 path = [
   "README.md",
+  "docs/**",
+  "specs/**",
+]
+SPDX-FileCopyrightText = "2026 Marcus Baw and Baw Medical Ltd"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = [
   "Cargo.toml",
   "Cargo.lock",
   "requirements.txt",
   "mkdocs.yml",
   ".gitignore",
   "**/.gitignore",
-  "docs/**",
-  "specs/**",
   "my-cdr/**",
   "tests/fixtures/**",
 ]

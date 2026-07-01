@@ -4,6 +4,7 @@
 site_name: anarchie
 site_url: https://pacharanero.github.io/anarchie
 site_description: A local-first, git-native, flat-file openEHR clinical data repository
+copyright: "Content CC-BY-SA-4.0; code AGPL-3.0-or-later - © Marcus Baw and Baw Medical Ltd"
 
 # repo
 repo_url: https://github.com/pacharanero/anarchie
