@@ -58,6 +58,58 @@ Integrations with external systems and open research questions, deliberately lef
 
 ---
 
+## House-style conformance
+
+Gaps against the shared engineering standards in `~/code/house-style` - the conventions every Baw Medical repo (`sct`, `dsc`, `gitehr`) follows. None of these change what anarchie *does*; they make it consistent with its siblings. Grouped by the standard they come from.
+
+### Licensing and REUSE
+
+- Add a root `LICENSE` file (the full AGPL-3.0-or-later text).
+- Add the `SPDX-FileCopyrightText: <year> Dr Marcus Baw and Baw Medical Ltd` line above the existing `SPDX-License-Identifier` on every source file (only the identifier is present today).
+- Add a root `REUSE.toml` covering files that cannot carry a header (Markdown, JSON, `Cargo.lock`, test fixtures), and enforce `reuse lint` in CI.
+- Reconcile content licensing: house-style is CC-BY-SA-4.0 for written content, whereas anarchie's [licensing.md](licensing.md) uses a deliberate four-layer split (openEHR specs CC-BY-ND, CKM archetypes CC-BY-SA-3.0). Decide whether anarchie's *own* prose (docs, specs) adopts CC-BY-SA-4.0 while the openEHR-derived layers keep their upstream licences.
+
+### CLI shape
+
+- A global `--format text|json` flag honoured by every command, replacing the per-command `--json` on `validate`/`fsck`.
+- A bare `anarchie` (or a bare command family like `anarchie ehr`) should print a helpful usage summary and exit 0, not error with exit 2.
+- An `anarchie version` subcommand honouring `--format`, keeping `--version`/`-V` as the quick-check flags.
+- Shell completions via `clap_complete`: `anarchie completions <shell>` / `install`, for bash/zsh/fish/powershell, with a generation test.
+- Reset SIGPIPE on Unix so output pipes cleanly into `head`/`less`.
+- Refactor the single large `main.rs` into one module per command family, each with a `run()`, dispatched from a thin `main` (the domain logic already lives in the library modules).
+- *(Lower priority)* a machine-discoverable `--schema` / fillable-template surface, sharing one schema with the MCP tools.
+
+### CI and automation
+
+- Add `.github/dependabot.yml` (cargo + github-actions; weekly grouped minor/patch with a cooldown).
+- Harden `ci.yml`: `permissions: contents: read`, a `workflow_dispatch` trigger, a REUSE-compliance job, and `Swatinem/rust-cache` in place of the raw `actions/cache`.
+- *(Optional)* tracked `.githooks/` + `s/install-hooks`, with a pre-commit hook running `s/lint`.
+
+### Release cascade and distribution
+
+Extends the **Distribution** item above with the house-style specifics:
+
+- `s/version++ [patch|minor|major]` as the single release action - bump the version, regenerate `Cargo.lock` and a git-cliff `CHANGELOG.md`, commit `chore(release): vX.Y.Z`, and push. Needs a `cliff.toml` and a `CHANGELOG.md`.
+- cargo-dist `release.yml` for prebuilt binaries, the shared `pacharanero/homebrew-tap`, and a Windows MSI; then additive `.deb` / `.rpm` / `.dmg`, with one `SHA256SUMS` as the source of truth.
+- `[package.metadata.binstall]` so `cargo binstall anarchie` finds the release archives.
+
+### Scripts and docs
+
+- Add the canonical `s/` scripts anarchie lacks - `s/test`, `s/build`, `s/lint` (and `s/version++` above); add `s/README.md` once there are more than three.
+- Make `s/docs` bind the first free port in 8000-8030 (IPv6-aware) rather than a fixed port.
+- Move docs deployment to the artifact-based `upload-pages-artifact` + `deploy-pages` method (no `gh-pages` branch), with path filters and a `workflow_dispatch` trigger.
+
+### Testing hygiene
+
+- Disable commit signing (`git config commit.gpgsign false`) inside the throwaway git repos the store/CLI tests create, so contributors with global commit signing do not hit spurious failures.
+- The openEHR CNF conformance corpus and the Archie/EHRbase cross-checks (tracked under **Conformance** above) are the golden-vector layer the standard asks for.
+
+### Library extraction
+
+- If the openEHR Reference Model (`rm`, and perhaps `aom` / `validate`) earns external consumers, extract it as a leaf crate (serde-only, no host dependencies) via `git subtree split` so its history travels. Deliberately deferred - the single-crate simplification is the right default until a consumer appears.
+
+---
+
 ## Guiding constraints throughout
 
 - **Always shippable** - every step ends with a runnable binary and inspectable files.

@@ -87,6 +87,7 @@ Store integrity checking, and sets of Operational Templates installable as a uni
 | Projection             | FHIR / IPS projection of stored data. |
 | Distribution           | `cargo install` and a `curl \| sh` one-liner work today (see [Install](../install.md)); the crates.io publish is wired up (fires on the first tag), and prebuilt binaries (cargo-dist), Homebrew, Windows installers, and `.deb` / `.rpm` are planned. |
 | Interfaces             | A TUI / GUI over the store. |
+| Conventions            | House-style conformance - REUSE + SPDX headers, a global `--format`, shell completions, the `s/version++` + cargo-dist release cascade, and dependabot. |
 
 No item depends on a later one to be useful. Each is intended to teach
 something - the next big open question being how much of AQL a DuckDB-over-JSON
