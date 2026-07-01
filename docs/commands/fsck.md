@@ -8,12 +8,12 @@ anything that fails to parse or conform.
 ## Usage
 
 ```bash
-anarchie fsck [--json]
+anarchie fsck [--format json]
 ```
 
 | Option     | Default | Description                                          |
 | ---------- | ------- | ---------------------------------------------------- |
-| `--json`   | off     | Emit the integrity report as JSON instead of text.   |
+| `--format <fmt>` | `text` | Global flag: `text` (default) or `json` for the report. |
 
 The command exits `0` when the store is clean and non-zero when any Composition
 fails - so it drops straight into CI or a pre-flight check.
@@ -41,11 +41,11 @@ the authoritative data itself.
 
 ## Machine-readable output
 
-`--json` emits a report suitable for scripting, with the counts and a (here
+`--format json` emits a report suitable for scripting, with the counts and a (here
 empty) `issues` array:
 
 ```bash
-$ anarchie fsck --json
+$ anarchie fsck --format json
 {
   "ehrs": 1,
   "compositions": 1,

@@ -6,14 +6,14 @@ against a registered Operational Template - without committing anything.
 ## Usage
 
 ```bash
-anarchie validate <file> [--template <template_id>] [--json]
+anarchie validate <file> [--template <template_id>] [--format json]
 ```
 
 | Argument / option        | Default | Description                                                       |
 | ------------------------ | ------- | ----------------------------------------------------------------- |
 | `<file>`                 | -       | Path to a canonical-JSON Composition file.                        |
 | `--template <id>`        | (none)  | Also validate against this [registered template](template.md).    |
-| `--json`                 | off     | Emit the report as JSON instead of human-readable text.           |
+| `--format <fmt>`         | `text`  | Global flag: `text` (default) or `json` for the structured report. |
 
 The command exits `0` when there are no errors and `1` when at least one
 error-level violation is found. Warnings do not affect the exit code.
@@ -55,7 +55,7 @@ $ anarchie validate bad.json --template vital_signs_encounter.v1
 Machine-readable output for scripting or CI:
 
 ```bash
-$ anarchie validate bad.json --template vital_signs_encounter.v1 --json
+$ anarchie validate bad.json --template vital_signs_encounter.v1 --format json
 {
   "valid": false,
   "violations": [

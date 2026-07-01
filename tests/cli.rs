@@ -53,8 +53,55 @@ fn help_lists_the_commands() {
 }
 
 #[test]
-fn no_subcommand_is_a_usage_error() {
-    anarchie().assert().failure().code(2);
+fn bare_invocation_prints_help_and_exits_zero() {
+    anarchie().assert().success().stdout(
+        predicate::str::contains("Usage")
+            .and(predicate::str::contains("commit"))
+            .and(predicate::str::contains("validate")),
+    );
+}
+
+#[test]
+fn bare_command_family_prints_its_help() {
+    anarchie()
+        .arg("ehr")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("new").and(predicate::str::contains("list")));
+}
+
+#[test]
+fn version_command_reports_the_version() {
+    anarchie()
+        .arg("version")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("anarchie 0.1.0"));
+    anarchie()
+        .args(["version", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"version\"").and(predicate::str::contains("0.1.0")));
+}
+
+#[test]
+fn global_format_json_emits_json() {
+    anarchie()
+        .args(["pack", "list", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(predicate::str::starts_with("[").and(predicate::str::contains("ips-core")));
+}
+
+#[test]
+fn completions_generate_for_every_shell() {
+    for shell in ["bash", "zsh", "fish", "powershell"] {
+        anarchie()
+            .args(["completions", shell])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("anarchie"));
+    }
 }
 
 #[test]
@@ -215,9 +262,23 @@ fn index_then_aql_counts_the_compositions() {
         .success()
         .stdout(predicate::str::contains("Indexed 1 composition"));
 
+    // Default (text) renders a table; the count of 1 appears.
     anarchie()
         .current_dir(&dir)
         .args(["aql", "SELECT COUNT(*) FROM COMPOSITION c"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains('1'));
+
+    // --format json emits the openEHR ResultSet.
+    anarchie()
+        .current_dir(&dir)
+        .args([
+            "aql",
+            "SELECT COUNT(*) FROM COMPOSITION c",
+            "--format",
+            "json",
+        ])
         .assert()
         .success()
         .stdout(predicate::str::contains("\"rows\"").and(predicate::str::contains('1')));

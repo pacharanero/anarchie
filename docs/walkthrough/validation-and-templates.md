@@ -66,7 +66,7 @@ $ anarchie validate bad.json --template vital_signs_encounter.v1
         magnitude 5000 outside permitted range for units "mm[Hg]"
 ```
 
-Add `--json` for machine-readable output you can pipe into CI.
+Add `--format json` for machine-readable output you can pipe into CI.
 
 ## Validation at the door
 

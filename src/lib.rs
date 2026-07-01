@@ -8,9 +8,10 @@
 //! [`opt`] (Operational Template parsing), [`validate`] (RM + Operational
 //! Template validation), [`store`] (the git-backed file store), [`query`] (the
 //! AQL engine over a derived index), and [`serve`] (the openEHR REST API and
-//! the MCP server). The `anarchie` binary is a thin CLI over these.
+//! the MCP server). The `anarchie` binary is a thin CLI over these, in [`cli`].
 
 pub mod aom;
+pub mod cli;
 pub mod opt;
 pub mod query;
 pub mod rm;
