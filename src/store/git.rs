@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! A thin, structured wrapper around the system `git` binary.
 //!
@@ -70,6 +71,12 @@ impl Git {
             &[
                 "-c",
                 "core.commentchar=;",
+                // anarchie's commits are machine audit commits, not user
+                // commits - never sign them, so an operator (or a contributor
+                // running the tests) with a global `commit.gpgsign=true` does
+                // not break or block a commit.
+                "-c",
+                "commit.gpgsign=false",
                 "commit",
                 "--quiet",
                 "--author",
