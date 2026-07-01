@@ -8,6 +8,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,14 +29,7 @@ jobs:
           components: clippy, rustfmt
 
       - name: Cache Cargo registry and build artefacts
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
 
       - name: cargo fmt --check
         run: cargo fmt --check
@@ -60,14 +57,7 @@ jobs:
           tool: cargo-llvm-cov
 
       - name: Cache Cargo registry and build artefacts
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-cov-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-cov-
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
 
       # Measures line/region/function coverage and writes the summary table to
       # the job summary. Not gated on a threshold yet - it reports the number.
@@ -78,3 +68,10 @@ jobs:
             cargo llvm-cov --summary-only
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
+
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: fsfe/reuse-action@9a55738c6490d015afe69ad187520395d2b7a1fa # v6.0.0

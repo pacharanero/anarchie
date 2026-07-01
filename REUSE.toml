@@ -1,0 +1,38 @@
+version = 1
+
+# Files that cannot carry an inline SPDX header (Markdown, JSON, TOML, the
+# lockfile, test fixtures, config). Source files (.rs, shell, YAML) carry their
+# own two-line header; this file covers the rest.
+#
+# anarchie's own written content and config is under the project code licence
+# for now. Reconciling that with the house-style CC-BY-SA-4.0 content licence is
+# a tracked roadmap item (see specs/roadmap.md, "House-style conformance").
+
+[[annotations]]
+path = [
+  "README.md",
+  "Cargo.toml",
+  "Cargo.lock",
+  "requirements.txt",
+  "mkdocs.yml",
+  ".gitignore",
+  "**/.gitignore",
+  "docs/**",
+  "specs/**",
+  "my-cdr/**",
+  "tests/fixtures/**",
+]
+SPDX-FileCopyrightText = "2026 Marcus Baw and Baw Medical Ltd"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Bundled Operational Templates: derivatives of openEHR International (CKM)
+# archetypes, redistributed under CC-BY-SA-3.0. Per-template provenance is in
+# src/store/starter/templates/attribution.md.
+
+[[annotations]]
+path = [
+  "src/store/starter/templates/*.opt.json",
+  "src/store/starter/templates/attribution.md",
+]
+SPDX-FileCopyrightText = "openEHR Foundation and contributors (see src/store/starter/templates/attribution.md)"
+SPDX-License-Identifier = "CC-BY-SA-3.0"

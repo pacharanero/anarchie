@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! A minimal stdio MCP (Model Context Protocol) server exposing the store to
 //! LLM agents: get / commit / validate / query Compositions. The structured

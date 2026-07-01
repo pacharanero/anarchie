@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! `fsck` - a full integrity check of the store against the Reference Model.
 //!

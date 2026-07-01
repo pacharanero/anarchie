@@ -40,7 +40,10 @@
 - The directory's `NOTICE` lists, per artefact: CKM identifier, version, original author/custodian, copyright statement (preserved verbatim from the archetype's ODIN header), and the CC-BY-SA 3.0 notice.
 - **ShareAlike obligation:** the bundled models (and any modifications/derived OPTs we generate) are themselves licensed CC-BY-SA 3.0. ShareAlike applies to *the models*, not to the `anarchie` *code* that processes them - the two are independent works distributed together (mere aggregation), which is why the directory separation matters.
 - **Scope:** default bundle is **openEHR International, Published** archetypes only. National-namespace archetypes (which may carry different terms) are excluded from the default and added by users/packs at their own discretion.
+<!-- REUSE-IgnoreStart -->
 - **SPDX:** data files carry `SPDX-License-Identifier: CC-BY-SA-3.0` in an accompanying manifest where inline headers are not appropriate.
+<!-- REUSE-IgnoreEnd -->
+
 
 ## 4. Terminology — explicitly NOT bundled
 

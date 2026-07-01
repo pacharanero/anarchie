@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! Textual data values (`DV_TEXT`, `DV_CODED_TEXT`) and the `name` slot.
 

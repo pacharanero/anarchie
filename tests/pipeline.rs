@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! End-to-end Phase 4 pipeline: a real deployment → git commit → index → AQL.
 //! Exercises the freshness check and the deployment-level `Index::build`, which
