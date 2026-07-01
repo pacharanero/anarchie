@@ -13,4 +13,46 @@ if [[ -f .venv-docs/bin/activate ]]; then
   source .venv-docs/bin/activate
 fi
 
-exec zensical serve --open
+# Pick the first free port in 8000-8030 so concurrent docs servers (one per
+# repo) don't fight over 8000 - unless the caller passed their own address.
+PORT_MIN=8000
+PORT_MAX=8030
+
+addr_given=0
+for arg in "$@"; do
+  case "$arg" in
+    -a | --dev-addr | --dev-addr=*) addr_given=1; break ;;
+  esac
+done
+
+# True when something is already LISTENING on $1, on ANY address and either
+# IP family. zensical binds `localhost`, which often resolves to IPv6 `::1`,
+# so an IPv4-only connect probe misses it - use `ss` (Linux), then `lsof`
+# (macOS/BSD), then a best-effort connect probe.
+port_in_use() {
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltnH 2>/dev/null | awk '{print $4}' | awk -F: '{print $NF}' | grep -qx "$1"
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1
+  else
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null
+  fi
+}
+
+if [[ "$addr_given" -eq 0 ]]; then
+  chosen=""
+  for port in $(seq "$PORT_MIN" "$PORT_MAX"); do
+    if ! port_in_use "$port"; then
+      chosen="$port"
+      break
+    fi
+  done
+  if [[ -n "$chosen" ]]; then
+    echo >&2 "Serving docs on http://localhost:$chosen"
+    set -- --dev-addr "localhost:$chosen" "$@"
+  else
+    echo >&2 "warning: no free port in ${PORT_MIN}-${PORT_MAX}; letting zensical use its default"
+  fi
+fi
+
+exec zensical serve --open "$@"
