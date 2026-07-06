@@ -28,7 +28,7 @@ pub enum StoreError {
     #[error("not an anarchie deployment: no anarchie.toml found at or above {0}")]
     NotADeployment(PathBuf),
 
-    #[error("deployment already exists at {0}")]
+    #[error("there is already an initialised anarchie CDR here ({0} exists)")]
     AlreadyExists(PathBuf),
 
     #[error("EHR `{0}` not found")]

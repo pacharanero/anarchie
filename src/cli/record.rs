@@ -13,7 +13,13 @@ use crate::store::{Audit, ChangeType, Deployment, DeploymentConfig, StoreError};
 
 pub(crate) fn init(format: Format, path: &Path, system_id: &str, minimal: bool) -> Result<()> {
     let config = DeploymentConfig::new(system_id);
-    let deployment = Deployment::init(path, config).context("initialising deployment")?;
+    let deployment = match Deployment::init(path, config) {
+        Ok(deployment) => deployment,
+        // A normal, expected situation - surface it plainly rather than wrapped
+        // in "initialising deployment: ...".
+        Err(err @ StoreError::AlreadyExists(_)) => return Err(err.into()),
+        Err(err) => return Err(anyhow::Error::new(err).context("initialising deployment")),
+    };
     let root = deployment.root().display().to_string();
     let sys = deployment.config().system_id.clone();
     let templates: Vec<String> = if minimal {

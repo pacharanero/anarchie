@@ -133,7 +133,7 @@ impl Deployment {
         let root = root.into();
         let config_path = root.join("anarchie.toml");
         if config_path.exists() {
-            return Err(StoreError::AlreadyExists(root));
+            return Err(StoreError::AlreadyExists(config_path));
         }
 
         create_dir(&root)?;
