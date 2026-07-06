@@ -19,6 +19,11 @@ on:
     tags: ["v*"]
   workflow_call:
 
+# Least-privilege GITHUB_TOKEN: publishing uses CARGO_REGISTRY_TOKEN, so this
+# job needs no write scope of its own.
+permissions:
+  contents: read
+
 jobs:
   publish:
     name: Publish to crates.io
@@ -30,19 +35,12 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
 
       - name: Cache Cargo registry and build artefacts
-        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-publish-${{ hashFiles('Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-publish-
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc # v2.9.1
 
       - name: Build and test (gate before publishing)
         run: |
-          cargo build --release
-          cargo test
+          cargo build --release --locked
+          cargo test --locked
 
       - name: Publish to crates.io
         env:
