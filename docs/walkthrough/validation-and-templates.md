@@ -24,22 +24,29 @@ pressure in `mm[Hg]` and within a plausible range? Is the mandatory observation
 actually present? These constraints come from an archetype/template, expressed
 in the **Archetype Object Model** (AOM).
 
-## Registering a template
+## The template is already registered
 
-A template is the schema. Before `anarchie` can enforce archetype-level
-constraints, you register the Operational Template for it:
+A template is the schema. `anarchie init` already installed the IPS-aligned
+starter set, so the one this walkthrough needs -
+`vital_signs_encounter.v1` - is registered from the start:
 
 ```bash
-$ anarchie template add vital_signs_encounter.opt.json
-Registered template vital_signs_encounter.v1
-
 $ anarchie template list
+adverse_reaction_list.v1
+encounter_note.v1
+immunisation_list.v1
+laboratory_result_report.v1
+medication_list.v1
+problem_list.v1
+procedure_list.v1
 vital_signs_encounter.v1
 ```
 
-The template is stored inside the deployment under `templates/` and indexed.
-From now on, any Composition whose `template_id` is `vital_signs_encounter.v1`
-is validated against it automatically.
+Each template is stored inside the deployment under `templates/` and indexed.
+Any Composition whose `template_id` is one of these is validated against it
+automatically. To add your *own* Operational Template, register its
+anarchie-OPT JSON with `anarchie template add <your-template>.opt.json`; it
+joins the list the same way.
 
 !!! note "anarchie's native template form"
     The file above is anarchie's own flattened-OPT JSON: a `template_id`, a root
@@ -58,7 +65,13 @@ valid
 ```
 
 When something is wrong, each violation reports a severity, the openEHR path to
-the offending node, the constraint that failed, and a human-readable message:
+the offending node, the constraint that failed, and a human-readable message.
+Make a deliberately broken copy first - push the systolic magnitude (128) far
+out of physiological range:
+
+```bash
+sed 's/128.0/5000.0/' vitals.json > bad.json
+```
 
 ```bash
 $ anarchie validate bad.json --template vital_signs_encounter.v1

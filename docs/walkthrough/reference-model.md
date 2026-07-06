@@ -5,6 +5,18 @@ Before storing anything, `anarchie` has to understand it. anarchie's
 **canonical JSON** reader and writer. Two features fall straight out of it and
 are useful on their own, without a repository.
 
+## Get the example Composition
+
+This walkthrough uses one small canonical Composition, a single blood-pressure
+reading. The repository ships it at `examples/vitals.json`; copy it into the CDR
+you just created (from `my-cdr`, the clone's `examples/` is one level up):
+
+```bash
+cp ../examples/vitals.json .
+```
+
+Everything below assumes `vitals.json` is in the current directory.
+
 ## Inspecting a Composition
 
 Point `anarchie info` at any canonical-JSON Composition and it parses the whole

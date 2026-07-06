@@ -64,7 +64,12 @@ What just happened:
 ## Commit a new version
 
 Pass `--object-id` to create a new version of an *existing* Composition rather
-than a brand-new one:
+than a brand-new one. Make an edited copy first - correct the diastolic reading
+(82) to 84:
+
+```bash
+sed 's/82.0/84.0/' vitals.json > vitals-updated.json
+```
 
 ```bash
 $ anarchie commit "$EHR" vitals-updated.json \

@@ -22,6 +22,20 @@ fn anarchie() -> Command {
     Command::cargo_bin("anarchie").expect("the `anarchie` binary builds")
 }
 
+/// The walkthrough drives `examples/vitals.json`; it must stay byte-identical
+/// to the fixture the tests validate against, so the documented commands and
+/// their expected output cannot drift from what the code actually does.
+#[test]
+fn example_vitals_matches_the_fixture() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let example = std::fs::read(root.join("examples").join("vitals.json")).unwrap();
+    let canonical = std::fs::read(fixture()).unwrap();
+    assert_eq!(
+        example, canonical,
+        "examples/vitals.json must equal tests/fixtures/blood-pressure-composition.json"
+    );
+}
+
 /// `anarchie init` in a fresh temp dir, returning the dir handle.
 fn init_deployment() -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
