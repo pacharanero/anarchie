@@ -12,6 +12,12 @@ homepage = "https://pacharanero.github.io/anarchie"
 keywords = ["openehr", "ehr", "cdr", "healthcare", "git"]
 categories = ["command-line-utilities", "database-implementations"]
 
+[package.metadata.wix]
+upgrade-guid = "343697DA-5A01-44A0-B320-7013190946D5"
+path-guid = "815FE722-A402-4847-B180-E32F4F906462"
+license = false
+eula = false
+
 # A single crate that builds both the `anarchie` library (the layered modules)
 # and the `anarchie` binary (a thin CLI over them). src/lib.rs and src/main.rs
 # are auto-detected.
@@ -34,3 +40,33 @@ libc = "0.2.186"
 assert_cmd = "2.1.2"
 predicates = "3.1.4"
 tempfile = "3.27.0"
+
+[workspace]
+members = ["."]
+
+# Config for 'dist' (cargo-dist): the tag-driven release.yml builds prebuilt
+# binaries and installers for each target and publishes a Homebrew formula.
+# Regenerate CI with `dist generate` after editing this; release.yml is then
+# hand-pinned to action SHAs (see the allow-dirty note below).
+[workspace.metadata.dist]
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.31.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "powershell", "homebrew", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Path that installers should place binaries in
+install-path = "CARGO_HOME"
+# Whether to install an updater program
+install-updater = false
+# Homebrew tap to publish formulas to. A HOMEBREW_TAP_TOKEN secret (a PAT with
+# write access to the tap repo) must be set on this repo for the release
+# workflow to push formulas there.
+tap = "pacharanero/homebrew-tap"
+publish-jobs = ["homebrew"]
+publish-prereleases = false
+# We hand-edit .github/workflows/release.yml to pin actions to commit SHAs
+# (supply-chain hardening); tell dist not to error on the resulting drift.
+allow-dirty = ["ci"]

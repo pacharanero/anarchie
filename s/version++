@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Usage: s/version++ [patch|minor|major]   (default: patch)
+#
+# The one release action. In order: runs the pre-release checks, bumps the
+# version in Cargo.toml, regenerates CHANGELOG.md (git-cliff), commits the
+# release, tags it, and pushes main + the tag. The pushed tag triggers the
+# cargo-dist release workflow (prebuilt binaries + GitHub Release + Homebrew)
+# and the crates.io publish.
+#
+# Commit your feature work FIRST, with conventional-commit messages
+# (`feat(...)`, `fix:`, ...). git-cliff reads *committed* history, so anything
+# uncommitted won't appear in the new CHANGELOG.md section; this script makes
+# only the release commit.
+#
+# Note on tagging (divergence from ~/code/house-style/distribution.md): the
+# house standard is s/version++ commits+pushes and a CI auto-tag.yml creates
+# the tag via workflow_call. anarchie's release.yml (cargo-dist) and
+# publish-crates.yml are both *tag-driven* (they trigger on `push: tags: v*`),
+# and a tag pushed by the default GITHUB_TOKEN would not trigger them. So until
+# a PAT-based auto-tag exists we tag locally, AFTER the commit (so the tag
+# contains the bump, avoiding the tag-before-commit hazard the standard warns
+# about); with no auto-tag there is no duplicate-tag race.
+
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+bump="${1:-patch}"
+case "$bump" in
+  patch | minor | major) ;;
+  *)
+    echo "Usage: s/version++ [patch|minor|major]" >&2
+    exit 2
+    ;;
+esac
+
+# Release from main only.
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$branch" != "main" ]]; then
+  echo "On '$branch', not 'main'. Releases are cut from main." >&2
+  exit 1
+fi
+
+# The release commit must contain only the bump + changelog, so the tree must
+# be clean (feature work already committed).
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Working tree not clean. Commit your feature work first, then release." >&2
+  exit 1
+fi
+
+for tool in git-cliff cargo-set-version; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "$tool is required but isn't installed." >&2
+    echo "Install with: cargo install ${tool/cargo-set-version/cargo-edit} --locked" >&2
+    exit 1
+  fi
+done
+
+# Pre-release gate: the same fmt + clippy + full-test-suite + REUSE checks CI
+# enforces, so we never cut and push a release that CI would then reject *after*
+# the tag has already triggered the irreversible release. Runs before anything
+# is modified, so a failure aborts cleanly.
+echo "Pre-release checks (mirror CI): fmt + clippy, tests, REUSE..."
+s/lint
+s/test
+reuse lint
+
+cargo set-version --bump "$bump"
+version="$(awk -F\" '/^version = / {print $2; exit}' Cargo.toml)"
+tag="v$version"
+
+if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+  echo "Tag $tag already exists." >&2
+  exit 1
+fi
+
+# Render the changelog with the in-progress work moved under the new tag + date.
+git-cliff --tag "$tag" -o CHANGELOG.md
+
+# Sync Cargo.lock's own version to the bump (workspace member only, external
+# deps untouched), then commit the release and tag it AFTER the commit (so the
+# tag contains the bump).
+cargo update --workspace >/dev/null 2>&1 || true
+git add Cargo.toml Cargo.lock CHANGELOG.md
+git commit -m "chore(release): $tag"
+git tag -a "$tag" -m "Release $tag"
+
+git push origin main
+git push origin "$tag"
+
+echo
+echo "Released $tag. CI is building binaries + publishing to crates.io."
+echo "Homebrew publishing needs the HOMEBREW_TAP_TOKEN secret and the"
+echo "pacharanero/homebrew-tap repo; without them that job will fail but the"
+echo "GitHub Release and crates.io publish still succeed."

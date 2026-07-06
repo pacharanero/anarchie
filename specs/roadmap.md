@@ -50,7 +50,7 @@ Integrations with external systems and open research questions, deliberately lef
 
 `cargo install` and an interim `curl | sh` one-liner build from source today (see the [installation page](https://pacharanero.github.io/anarchie/install/)).
 
-- [~] **Full release pipeline** - the *bump-on-`main`, CI-does-the-rest* model: cargo-dist prebuilt binaries, a shared Homebrew tap, and a Windows MSI on the first tagged release; then additive `.deb` / `.rpm` / `.dmg`. The **crates.io publish** workflow is already wired up and fires on the first `v*` tag, so `cargo install anarchie` works once published; the prebuilt-binary half (the *Release cascade* items below) is still to do.
+- [~] **Full release pipeline** - the *bump, CI-does-the-rest* model is now wired: `s/version++` bumps + changelogs + tags, and the pushed tag drives both the crates.io publish and the cargo-dist release (prebuilt binaries for five targets, a Homebrew formula, and a Windows MSI). Validated by `dist plan`; proven end to end only on the first real tag. Still open: the additive `.deb` / `.rpm` / `.dmg` targets, and the `HOMEBREW_TAP_TOKEN` secret + `pacharanero/homebrew-tap` repo the formula-push needs.
 
 ### Community and polish
 
@@ -62,7 +62,7 @@ Integrations with external systems and open research questions, deliberately lef
 
 ## House-style conformance
 
-Conformance with the shared engineering standards in `~/code/house-style` - the conventions every Baw Medical repo (`sct`, `dsc`, `gitehr`) follows. None of these change what anarchie *does*; they make it consistent with its siblings. **Most were closed in July 2026**; what remains is the release cascade and a couple of deferred items. Grouped by the standard they come from.
+Conformance with the shared engineering standards in `~/code/house-style` - the conventions every Baw Medical repo (`sct`, `dsc`, `gitehr`) follows. None of these change what anarchie *does*; they make it consistent with its siblings. **Nearly all were closed in July 2026**; what remains is a couple of deliberately deferred items (the conformance oracles and library extraction) plus proving the release pipeline on a first real tag. Grouped by the standard they come from. See also [HOUSE-STYLE-AUDIT.md](../HOUSE-STYLE-AUDIT.md) for the point-in-time audit these items trace to.
 
 ### Licensing and REUSE
 
@@ -91,13 +91,13 @@ Conformance with the shared engineering standards in `~/code/house-style` - the 
 
 Extends the **Distribution** item above with the house-style specifics:
 
-- [ ] `s/version++ [patch|minor|major]` as the single release action - bump the version, regenerate `Cargo.lock` and a git-cliff `CHANGELOG.md`, commit `chore(release): vX.Y.Z`, and push. Needs a `cliff.toml` and a `CHANGELOG.md`.
-- [ ] cargo-dist `release.yml` for prebuilt binaries, the shared `pacharanero/homebrew-tap`, and a Windows MSI; then additive `.deb` / `.rpm` / `.dmg`, with one `SHA256SUMS` as the source of truth.
-- [ ] `[package.metadata.binstall]` so `cargo binstall anarchie` finds the release archives.
+- [x] `s/version++ [patch|minor|major]` as the single release action - runs the CI checks, bumps the version, regenerates `Cargo.lock` and a git-cliff `CHANGELOG.md`, commits `chore(release): vX.Y.Z`, tags, and pushes. `cliff.toml` and `CHANGELOG.md` are in place.
+- [x] cargo-dist `release.yml` for prebuilt binaries (five targets), the shared `pacharanero/homebrew-tap`, and a Windows MSI, with a `sha256.sum` as the source of truth. Actions hand-pinned to SHAs. Additive `.deb` / `.rpm` / `.dmg` remain (add targets to `[workspace.metadata.dist]` and regenerate).
+- [~] `cargo binstall anarchie` works off cargo-dist's release manifest (no explicit `[package.metadata.binstall]` needed, matching `dsc`); confirm on the first release.
 
 ### Scripts and docs
 
-- [x] Add the canonical `s/` scripts anarchie lacks - `s/test`, `s/build`, `s/lint` (and `s/version++` above); add `s/README.md` once there are more than three. (`s/version++` itself is still pending, under *Release cascade*.)
+- [x] Add the canonical `s/` scripts anarchie lacks - `s/test`, `s/build`, `s/lint`, `s/version++`; `s/README.md` documents them all.
 - [x] Make `s/docs` bind the first free port in 8000-8030 (IPv6-aware) rather than a fixed port.
 - [x] Move docs deployment to the artifact-based `upload-pages-artifact` + `deploy-pages` method (no `gh-pages` branch), with path filters and a `workflow_dispatch` trigger.
 

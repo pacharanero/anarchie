@@ -28,3 +28,7 @@ Opt in to the tracked pre-commit hook in `.githooks/` that runs `s/lint`. One-of
 ## `s/docs`
 
 Serve the documentation site locally with live reload (`zensical serve`).
+
+## `s/version++`
+
+The one release action: `s/version++ [patch|minor|major]` (default `patch`). Runs the CI checks, bumps the version, regenerates `CHANGELOG.md` (git-cliff), commits `chore(release): vX.Y.Z`, tags it, and pushes `main` + the tag. The tag triggers the cargo-dist release (prebuilt binaries, GitHub Release, Homebrew) and the crates.io publish. Commit feature work first; releases are cut from a clean `main`.
