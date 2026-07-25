@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Disposable local EHRbase instance for interoperability tests only. It is not
+# part of anarchie's runtime and must never be used with patient data.
+name: anarchie-ehrbase-oracle
+
+services:
+  ehrbase:
+    image: ehrbase/ehrbase:2.34.0@sha256:89e52635fc72dca3eda368b601f3a7aa6cbaa24e7582f5ee00e953759626904d
+    depends_on:
+      ehrdb:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://ehrdb:5432/ehrbase
+      DB_USER_ADMIN: ehrbase
+      DB_PASS_ADMIN: ehrbase
+      DB_USER: ehrbase_restricted
+      DB_PASS: ehrbase_restricted
+      SERVER_NODENAME: anarchie-ehrbase-oracle.local
+      SECURITY_AUTHTYPE: BASIC
+      SECURITY_AUTHUSER: ehrbase-oracle
+      SECURITY_AUTHPASSWORD: local-oracle-only
+      SECURITY_AUTHADMINUSER: ehrbase-oracle-admin
+      SECURITY_AUTHADMINPASSWORD: local-oracle-admin-only
+      MANAGEMENT_ENDPOINTS_WEB_ACCESS: PUBLIC
+      MANAGEMENT_ENDPOINT_INFO_ACCESS: read_only
+    ports:
+      - "127.0.0.1:${EHRBASE_ORACLE_PORT:-8088}:8080"
+    networks:
+      - oracle
+
+  ehrdb:
+    image: ehrbase/ehrbase-v2-postgres:16.2@sha256:abe14e8f9ba33cabc9946c6c17c5aa95b64b35387f266cd20a894149203196d7
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      EHRBASE_USER_ADMIN: ehrbase
+      EHRBASE_PASSWORD_ADMIN: ehrbase
+      EHRBASE_USER: ehrbase_restricted
+      EHRBASE_PASSWORD: ehrbase_restricted
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    networks:
+      - oracle
+
+networks:
+  oracle:

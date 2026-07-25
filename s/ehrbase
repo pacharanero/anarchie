@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Manage the disposable local EHRbase interoperability oracle. It is isolated
+# to its own Compose project and only binds to localhost.
+
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+compose_file="$root/tests/ehrbase/compose.yml"
+reference="$root/tests/ehrbase/ehrbase-reference.env"
+port="${EHRBASE_ORACLE_PORT:-8088}"
+base_url="http://127.0.0.1:$port/ehrbase"
+compose=(docker compose --project-directory "$root" --file "$compose_file")
+source "$reference"
+
+usage() {
+    printf 'usage: s/ehrbase <up|down|logs|status|test>\n' >&2
+}
+
+command -v docker >/dev/null || {
+    printf 'docker is required\n' >&2
+    exit 1
+}
+
+start_oracle() {
+    command -v curl >/dev/null || {
+        printf 'curl is required to wait for EHRbase\n' >&2
+        exit 1
+    }
+    "${compose[@]}" up --detach --remove-orphans
+    for _ in $(seq 1 90); do
+        if curl --fail --silent --output /dev/null "$base_url/management/info"; then
+            printf 'EHRbase oracle is ready at %s\n' "$base_url"
+            return 0
+        fi
+        sleep 2
+    done
+    printf 'EHRbase did not become ready; inspect with s/ehrbase logs\n' >&2
+    return 1
+}
+
+stop_oracle() {
+    "${compose[@]}" down --volumes --remove-orphans
+}
+
+case "${1:-}" in
+    up)
+        start_oracle
+        ;;
+    down)
+        stop_oracle
+        ;;
+    logs)
+        "${compose[@]}" logs --follow
+        ;;
+    status)
+        "${compose[@]}" ps
+        ;;
+    test)
+        command -v python3 >/dev/null || {
+            printf 'python3 is required for the differential test\n' >&2
+            exit 1
+        }
+        stop_oracle >/dev/null 2>&1 || true
+        start_oracle
+        trap 'stop_oracle >/dev/null 2>&1 || true' EXIT
+        cargo build --quiet --manifest-path "$root/Cargo.toml"
+        opt_url="https://raw.githubusercontent.com/ehrbase/ehrbase/$EHRBASE_FIXTURE_REVISION/$EHRBASE_OPT_PATH"
+        python3 "$root/tests/ehrbase/differential.py" \
+            --root "$root" \
+            --binary "$root/target/debug/anarchie" \
+            --base-url "$base_url" \
+            --user ehrbase-oracle-admin \
+            --password local-oracle-admin-only \
+            --opt-url "$opt_url" \
+            --opt-sha256 "$EHRBASE_OPT_SHA256"
+        ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac

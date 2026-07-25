@@ -1,0 +1,14 @@
+[
+  {
+    "id": "composition-count",
+    "aql": "SELECT COUNT(*) AS composition_count FROM EHR e CONTAINS COMPOSITION c"
+  },
+  {
+    "id": "systolic-projection",
+    "aql": "SELECT o/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude AS systolic FROM EHR e CONTAINS COMPOSITION c CONTAINS OBSERVATION o[openEHR-EHR-OBSERVATION.blood_pressure.v1]"
+  },
+  {
+    "id": "systolic-filter",
+    "aql": "SELECT o/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude AS systolic FROM EHR e CONTAINS COMPOSITION c CONTAINS OBSERVATION o[openEHR-EHR-OBSERVATION.blood_pressure.v1] WHERE o/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude > 120"
+  }
+]
