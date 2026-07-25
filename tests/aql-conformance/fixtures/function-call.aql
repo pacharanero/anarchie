@@ -1,0 +1,1 @@
+SELECT LENGTH(c/name/value) FROM COMPOSITION c

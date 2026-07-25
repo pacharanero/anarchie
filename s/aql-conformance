@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Run the official openEHR AQL grammar against anarchie's conformance corpus.
+# The grammar is fetched into a temporary directory and never stored in the
+# checkout because openEHR specifications are not redistributed by anarchie.
+
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+suite="$root/tests/aql-conformance"
+source "$suite/aql-reference.env"
+
+for command in curl java javac sha256sum; do
+    command -v "$command" >/dev/null || {
+        printf 'missing required command: %s\n' "$command" >&2
+        exit 1
+    }
+done
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+grammar_dir="$work_dir/grammar"
+generated_dir="$work_dir/generated"
+classes_dir="$work_dir/classes"
+mkdir -p "$grammar_dir" "$generated_dir" "$classes_dir"
+
+fetch() {
+    local url="$1"
+    local path="$2"
+    local expected_sha256="$3"
+
+    curl --fail --location --silent --show-error "$url" --output "$path"
+    printf '%s  %s\n' "$expected_sha256" "$path" | sha256sum --check --status || {
+        printf 'checksum mismatch for %s\n' "$url" >&2
+        exit 1
+    }
+}
+
+grammar_base="https://raw.githubusercontent.com/openEHR/specifications-QUERY/$AQL_GRAMMAR_REVISION/docs/AQL/grammar"
+fetch "$grammar_base/AqlLexer.g4" "$grammar_dir/AqlLexer.g4" "$AQL_LEXER_SHA256"
+fetch "$grammar_base/AqlParser.g4" "$grammar_dir/AqlParser.g4" "$AQL_PARSER_SHA256"
+
+antlr_jar="$work_dir/antlr-$ANTLR_VERSION-complete.jar"
+fetch "https://www.antlr.org/download/antlr-$ANTLR_VERSION-complete.jar" "$antlr_jar" "$ANTLR_JAR_SHA256"
+
+(
+    cd "$grammar_dir"
+    java -jar "$antlr_jar" -visitor -o "$generated_dir" AqlLexer.g4 AqlParser.g4
+)
+
+javac -cp "$antlr_jar" -d "$classes_dir" "$generated_dir"/*.java "$suite/AqlConformance.java"
+java -cp "$antlr_jar:$classes_dir" AqlConformance "$suite" "$suite/cases.tsv"

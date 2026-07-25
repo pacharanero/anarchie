@@ -94,7 +94,7 @@ Explicitly deferred: full path predicates, complex `CONTAINS` nesting, most `FUN
 
 ---
 
-## Grammar reference
+## Grammar reference and conformance
 
 AQL has a published ANTLR4 grammar (`AqlLexer.g4` / `AqlParser.g4` in [openEHR/specifications-QUERY](https://github.com/openEHR/specifications-QUERY)). `anarchie` reimplements the parser in Rust (`nom` / `pest` / `lalrpop` are all viable and keep the no-runtime promise), targeting the MVP subset first. The shape to implement:
 
@@ -111,6 +111,10 @@ predicate     = "[" (at_code | archetype_id | id_code) ("," name_value)? "]"
 order_expr    = identified_path (ASC | DESC)?
 limit         = LIMIT integer (OFFSET integer)?
 ```
+
+The production parser remains Rust-only. `tests/aql-conformance/` is a shared syntax corpus with expected outcomes for the official grammar and for anarchie. `s/aql-conformance` fetches a pinned grammar revision and the official ANTLR Java tool into a temporary directory, verifies their SHA-256 values, and uses them as a CI-only oracle. This makes parser drift and upstream grammar changes visible without shipping a JVM, ANTLR runtime, generated code, or a redistributed copy of the CC-BY-ND specification.
+
+For semantic interoperability work, `s/ehrbase up` starts a pinned, disposable EHRbase instance under `tests/ehrbase/`. It is a localhost-only test oracle for synthetic fixtures, never an anarchie runtime dependency or a patient-data deployment. `s/ehrbase test` rebuilds a clean oracle, loads the same derived synthetic blood-pressure Composition into EHRbase and anarchie, compares normalised count/projection/filter result sets, and tears the oracle down.
 
 ## Function catalogue
 

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# id	fixture	reference	anarchie	feature
+basic-select	fixtures/basic-select.aql	accept	accept	select
+contains-chain	fixtures/contains-chain.aql	accept	accept	contains
+where-boolean	fixtures/where-boolean.aql	accept	accept	where
+aggregate-parameter	fixtures/aggregate-parameter.aql	accept	accept	aggregates-and-parameters
+invalid-missing-from	fixtures/invalid-missing-from.aql	reject	reject	invalid-syntax
+invalid-missing-terminal	fixtures/invalid-missing-terminal.aql	reject	reject	invalid-syntax
+invalid-unterminated-string	fixtures/invalid-unterminated-string.aql	reject	reject	invalid-syntax
+invalid-incomplete-offset	fixtures/invalid-incomplete-offset.aql	reject	reject	invalid-syntax
+function-call	fixtures/function-call.aql	accept	reject	known-gap-functions
+nested-contains	fixtures/nested-contains.aql	accept	reject	known-gap-nested-contains

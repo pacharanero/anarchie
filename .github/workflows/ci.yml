@@ -40,6 +40,15 @@ jobs:
       - name: cargo test
         run: cargo test
 
+      - name: Install Java for the AQL reference oracle
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Verify AQL syntax against the official grammar
+        run: s/aql-conformance
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest

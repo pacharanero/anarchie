@@ -4,6 +4,7 @@
 # Backup/editor files
 **/*.rs.bk
 *.pdb
+__pycache__/
 
 # Zensical docs build output and local venv
 /site

@@ -13,6 +13,14 @@ The formatting and lint checks CI enforces - `cargo fmt --check` and `cargo clip
 
 The full test suite (`cargo test`). Forwards arguments: `s/test <name>` runs one test, `s/test --release` tests the release build.
 
+## `s/aql-conformance`
+
+Run the official openEHR AQL grammar against anarchie's conformance corpus. This requires Java, `javac`, `curl`, and `sha256sum`; it downloads all third-party artefacts into a temporary directory and leaves none in the checkout. CI runs it automatically.
+
+## `s/ehrbase`
+
+Manage the disposable local EHRbase interoperability oracle: `s/ehrbase up`, `s/ehrbase down`, `s/ehrbase logs`, or `s/ehrbase status`. `s/ehrbase test` rebuilds a clean oracle, loads the shared synthetic blood-pressure Composition into EHRbase and anarchie, compares AQL results, then tears the oracle down. It requires Docker Compose, binds only to localhost, and is for synthetic test data only. See [`tests/ehrbase/README.md`](../tests/ehrbase/README.md).
+
 ## `s/build`
 
 A release build of the `anarchie` binary (`cargo build --release`).
