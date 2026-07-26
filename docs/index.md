@@ -1,10 +1,10 @@
 # anarchie
 
-> *an-archie* - an **archie** without a server. Anarchic, file-first openEHR persistence.
+File-based, offline-first openEHR persistence, for experimentation, learning, and testing.
 
-A local-first openEHR Clinical Data Repository (CDR) that uses **flat files as its primary persistence layer** instead of a database server, and **git as its versioning mechanism** instead of rows in Postgres. Written in Rust. No JVM. No Docker. No terminology server.
+A Rust-based openEHR Clinical Data Repository (CDR) that uses **flat files as its primary persistence layer** instead of a database, and **git as its versioning mechanism**.
 
-The wager is simple: **openEHR data is already document-oriented.** A `COMPOSITION` is a self-contained, versioned clinical document, so the most natural way to store it is as a document on disk - one immutable canonical-JSON file per version. The EHR is a directory. A `CONTRIBUTION` is a git commit. The audit trail is the commit graph.
+**openEHR data is already document-oriented.** A `COMPOSITION` is a self-contained, versioned clinical document, so the most natural way to store it is as a document on disk - one immutable canonical-JSON file per version. The EHR is a directory. A `CONTRIBUTION` is a git commit. The audit trail is the commit graph.
 
 ```bash
 # scaffold a CDR, create a patient record, commit a composition
@@ -25,9 +25,7 @@ anarchie commit "$EHR" vitals.json -m "Admission observations"
 
     ---
 
-    Every Composition is one canonical-JSON file on disk. The EHR is a
-    directory. A human with `ls`, `cat`, `jq`, and `git log` can read the whole
-    store without `anarchie` installed.
+    Every Composition is one canonical-JSON file on disk. The EHR is a directory. A human with `ls`, `cat`, `jq`, and `git log` can read the whole store - even without `anarchie` installed!
 
     [:octicons-arrow-right-24: On-disk format](reference/on-disk-format.md)
 
