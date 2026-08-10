@@ -27,7 +27,7 @@ The shipped command surface is summarised, reader-friendly, in [docs/reference/r
 The biggest open question is not "does it run" but "is it *correct* against the reference implementations". Both cross-checks are **test-time oracles only** - never a runtime dependency, so the single-binary promise holds.
 
 - [ ] **Validator vs Archie.** Run the same Compositions through Archie (JVM) and `anarchie` and assert the verdicts agree. Needs the JVM toolchain and a curated conformance corpus ([openEHR/specifications-CNF](https://github.com/openEHR/specifications-CNF)); independent of the validator's own design, and the project's biggest correctness question. See [validation.md](validation.md).
-- [ ] **REST/AQL vs the EHRbase sandbox.** Submit the same template, Composition, and AQL to both and compare responses, to quantify "mostly works" for the server layer.
+- [~] **REST/AQL vs the EHRbase sandbox.** Submit the same template, Composition, and AQL to both and compare responses, to quantify "mostly works" for the server layer. `s/ehrbase test` now runs 23 differential AQL cases (COUNT, projection, all comparison operators, boolean logic, MATCHES, ORDER BY, LIMIT/OFFSET, all five aggregates) against a pinned EHRbase 2.34.0 oracle; remaining gap is REST endpoint comparison, multi-composition datasets, and known EHRbase limitations (LIKE on leaf paths, EXISTS, composition-name/ehr-id as queryable paths).
 
 ### Templates and serialisation
 
