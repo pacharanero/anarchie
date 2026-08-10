@@ -8,7 +8,10 @@ plain git operation you can inspect afterwards.
 ## Create an EHR
 
 ```bash
-$ anarchie ehr new
+anarchie ehr new
+```
+
+```text title="output"
 1b4e28ba-2fa1-11d2-883f-0016d3cca427
 ```
 
@@ -16,10 +19,24 @@ The command prints the new EHR id (a UUID). Behind it, `anarchie` created
 `ehrs/<id>/`, ran `git init` inside it, wrote the `EHR` and `EHR_STATUS`
 objects, and made the first commit - the creation audit.
 
+!!! tip "Save the EHR id"
+    The UUID printed here is your EHR id. The rest of this walkthrough uses the
+    shell variable `$EHR` to refer to it. Set it now so later commands work:
+
+    ```bash
+    EHR=1b4e28ba-2fa1-11d2-883f-0016d3cca427
+    ```
+
+    Use the id your `anarchie ehr new` actually printed, not the example value
+    above.
+
 List the EHRs in the deployment at any time:
 
 ```bash
-$ anarchie ehr list
+anarchie ehr list
+```
+
+```text title="output"
 1b4e28ba-2fa1-11d2-883f-0016d3cca427
 ```
 
@@ -35,10 +52,12 @@ Storing a Composition is a `CONTRIBUTION`, which `anarchie` maps onto a single
 git commit:
 
 ```bash
-$ EHR=1b4e28ba-2fa1-11d2-883f-0016d3cca427
-$ anarchie commit "$EHR" vitals.json \
+anarchie commit "$EHR" vitals.json \
     --committer "Dr Ada Lovelace" --email ada@example.org \
     -m "Admission observations"
+```
+
+```text title="output"
 Committed 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55::anarchie.example.org::1
   object_id:       9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
   commit:          a1b2c3d4…
@@ -56,6 +75,16 @@ What just happened:
   `anarchie-change-type`, `anarchie-system-id`) tie the commit back to the
   openEHR model.
 
+!!! tip "Save the object_id"
+    The `object_id` printed here is used in the next steps. Set a shell variable
+    for it:
+
+    ```bash
+    OBJECT_ID=9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
+    ```
+
+    Use the id your `anarchie commit` actually printed.
+
 !!! info "Why the manifest does not contain its own commit"
     A `CONTRIBUTION` references the commit that recorded it - but a commit cannot
     contain its own hash. So the link runs the other way: the commit carries an
@@ -72,10 +101,13 @@ sed 's/82.0/84.0/' vitals.json > vitals-updated.json
 ```
 
 ```bash
-$ anarchie commit "$EHR" vitals-updated.json \
-    --object-id 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55 \
+anarchie commit "$EHR" vitals-updated.json \
+    --object-id "$OBJECT_ID" \
     --committer "Dr Ada Lovelace" --email ada@example.org \
     -m "Corrected diastolic reading"
+```
+
+```text title="output"
 Committed 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55::anarchie.example.org::2
 ```
 
@@ -89,10 +121,10 @@ rather than a `Creation` in the audit.
 
 ```bash
 # the current head
-anarchie cat "$EHR" 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
+anarchie cat "$EHR" "$OBJECT_ID"
 
 # version 1, reconstructed from git history
-anarchie cat "$EHR" "9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55::anarchie.example.org::1"
+anarchie cat "$EHR" "$OBJECT_ID::anarchie.example.org::1"
 ```
 
 The head lives in the working tree; older versions are reconstructed with
@@ -102,7 +134,10 @@ and git holds everything before it.
 ## See the history
 
 ```bash
-$ anarchie log "$EHR" 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55
+anarchie log "$EHR" "$OBJECT_ID"
+```
+
+```text title="output"
 9f1c…::anarchie.example.org::2  2026-01-15T09:42:11Z  Corrected diastolic reading
   commit b2c3d4e5…
 9f1c…::anarchie.example.org::1  2026-01-15T09:30:00Z  Admission observations
@@ -115,7 +150,7 @@ That is the version history of the Composition, derived directly from
 ## Diff two versions
 
 ```bash
-$ anarchie diff "$EHR" 9f1c8a3e-7c2b-4e9a-bd11-2a1f6c0e4d55 1 2
+anarchie diff "$EHR" "$OBJECT_ID" 1 2
 ```
 
 `from` and `to` are 1-based `version_tree_id`s. Because the files are canonical,

@@ -32,7 +32,7 @@ mkdir my-cdr && cd my-cdr
 anarchie init --system-id anarchie.example.org
 ```
 
-```text
+```text title="output"
 Initialised anarchie deployment at .
   system_id: anarchie.example.org
   starter templates (8):
@@ -64,7 +64,10 @@ prints `starter templates: none (--minimal)` instead.
 Look at what was created:
 
 ```bash
-$ ls -A
+ls -A
+```
+
+```text title="output"
 anarchie.toml  ehrs  index  templates
 ```
 

@@ -31,7 +31,10 @@ starter set, so the one this walkthrough needs -
 `vital_signs_encounter.v1` - is registered from the start:
 
 ```bash
-$ anarchie template list
+anarchie template list
+```
+
+```text title="output"
 adverse_reaction_list.v1
 encounter_note.v1
 immunisation_list.v1
@@ -60,7 +63,10 @@ Use `anarchie validate` to check a file in isolation. With no template it runs
 the Reference Model checks; with `--template` it adds the archetype constraints:
 
 ```bash
-$ anarchie validate vitals.json --template vital_signs_encounter.v1
+anarchie validate vitals.json --template vital_signs_encounter.v1
+```
+
+```text title="output"
 valid
 ```
 
@@ -74,7 +80,10 @@ sed 's/128.0/5000.0/' vitals.json > bad.json
 ```
 
 ```bash
-$ anarchie validate bad.json --template vital_signs_encounter.v1
+anarchie validate bad.json --template vital_signs_encounter.v1
+```
+
+```text title="output"
   [error] /content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude (C_DV_QUANTITY)
         magnitude 5000 outside permitted range for units "mm[Hg]"
 ```
@@ -88,9 +97,12 @@ The point of all this is that you no longer have to remember to validate.
 error-level violation is rejected and nothing is written to the repository:
 
 ```bash
-$ anarchie commit "$EHR" bad.json -m "oops"
+anarchie commit "$EHR" bad.json -m "oops"
+```
+
+```text title="output"
 Rejected: composition failed validation
-  [error] /content[openEHR-EHR-OBSERVATION.blood_pressure.v2]/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude (C_DV_QUANTITY)
+  [error] /content[openEHR-OBSERVATION.blood_pressure.v2]/data[at0001]/events[at0006]/data[at0003]/items[at0004]/value/magnitude (C_DV_QUANTITY)
         magnitude 5000 outside permitted range for units "mm[Hg]"
 Error: 1 validation error(s)
 ```

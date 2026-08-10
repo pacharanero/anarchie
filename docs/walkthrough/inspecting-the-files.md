@@ -7,7 +7,10 @@ with tools you already have - **no `anarchie` binary required.**
 ## Walk the tree
 
 ```bash
-$ tree my-cdr
+tree my-cdr
+```
+
+```text title="output"
 my-cdr
 ├── anarchie.toml
 ├── ehrs
@@ -42,8 +45,11 @@ head file. Each Contribution leaves a manifest. It is all just files.
 ## Read a Composition with jq
 
 ```bash
-$ jq '.name.value, .archetype_details.template_id.value' \
+jq '.name.value, .archetype_details.template_id.value' \
     ehrs/*/compositions/*/composition.json
+```
+
+```text title="output"
 "Blood pressure"
 "vital_signs_encounter.v1"
 ```
@@ -53,11 +59,15 @@ any special knowledge of `anarchie`.
 
 ## Read the history with git
 
-The version history *is* the git history:
+The version history *is* the git history. From inside the deployment directory,
+`cd` into your EHR's directory and ask git:
 
 ```bash
-$ cd ehrs/1b4e28ba-2fa1-11d2-883f-0016d3cca427
-$ git log --oneline -- compositions/9f1c8a3e-*/composition.json
+cd ehrs/$EHR
+git log --oneline -- compositions/*/composition.json
+```
+
+```text title="output"
 b2c3d4e Corrected diastolic reading
 a1b2c3d Admission observations
 ```
@@ -65,7 +75,10 @@ a1b2c3d Admission observations
 The openEHR audit metadata is right there in the commit:
 
 ```bash
-$ git log -1 --format='%an <%ae>  %cI%n%b'
+git log -1 --format='%an <%ae>  %cI%n%b'
+```
+
+```text title="output"
 Dr Ada Lovelace <ada@example.org>  2026-01-15T09:42:11Z
 anarchie-contribution-id: 7b2a…
 anarchie-change-type: modification
@@ -75,7 +88,10 @@ anarchie-system-id: anarchie.example.org
 ## Reconstruct an old version with git
 
 ```bash
-$ git show a1b2c3d:compositions/9f1c8a3e-*/composition.json | jq .name.value
+git show a1b2c3d:compositions/*/composition.json | jq .name.value
+```
+
+```text title="output"
 "Blood pressure"
 ```
 

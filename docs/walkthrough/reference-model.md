@@ -23,7 +23,10 @@ Point `anarchie info` at any canonical-JSON Composition and it parses the whole
 tree and summarises it:
 
 ```bash
-$ anarchie info vitals.json
+anarchie info vitals.json
+```
+
+```text title="output"
 Composition: Blood pressure
   archetype:  openEHR-EHR-COMPOSITION.encounter.v1
   template:   vital_signs_encounter.v1
