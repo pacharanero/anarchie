@@ -121,11 +121,13 @@ Some constraints bind to external terminologies (SNOMED CT, LOINC, openEHR-inter
 
 ## Testing strategy
 
-Validation correctness is non-negotiable, so it is anchored to external truth rather than our own assumptions:
+Validation correctness is non-negotiable, so it is anchored to external truth rather than our own assumptions. The cross-cutting evidence model, profile rules, oracle roles, case format, and release gates are specified in [conformance.md](conformance.md).
 
-- **The openEHR conformance test suite / CDR test data** - reuse the community's published valid and invalid Composition examples. The formal cases live in [openEHR/specifications-CNF](https://github.com/openEHR/specifications-CNF).
+- **The openEHR conformance schedules / CDR test data** - use community-published valid and invalid Composition examples where available. [openEHR/specifications-CNF](https://github.com/openEHR/specifications-CNF) publishes conformance schedules and platform tests, but it is not currently a ready-made validator-vector corpus, so provenance must be checked case by case rather than assumed.
 - **Cross-check against Archie** at *development* time (not runtime): a test harness runs the same Composition through both Archie and `validate` and asserts the verdicts agree. Disagreements are bugs to investigate. This gives us a JVM oracle without a JVM dependency in the shipped binary.
 - **Cross-check REST/AQL behaviour against a reference CDR** - the public [EHRbase sandbox](https://sandkiste.ehrbase.org/) is a convenient behavioural oracle for the *server* layer: submit the same template, Composition, and AQL to both and compare responses. Like Archie, it is a development-time reference only, never a runtime dependency.
+
+The initial harness lives in `tests/archie/` and runs via `s/archie-conformance`. It pins Archie 3.17.0 by source revision, compiles an authored ADL2 archetype into an Archie `OperationalTemplate`, and compares six root Composition RM/OPT verdicts. This is an intentionally narrow first slice: Archie 3.17 consumes ADL2/OPT2 rather than legacy ADL 1.4 OPT XML, and nested archetypes require a complete repository before their verdicts are meaningful.
 - **Property-based tests** that generate RM instances from a template and assert they validate, and mutate them to assert they fail.
 
 ---

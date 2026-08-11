@@ -1,0 +1,23 @@
+{
+  "template_id": "anarchie_validator.v1",
+  "concept": "openEHR-EHR-COMPOSITION.anarchie_validator.v1",
+  "definition": {
+    "type": "COMPLEX",
+    "rm_type": "COMPOSITION",
+    "node_id": "openEHR-EHR-COMPOSITION.anarchie_validator.v1",
+    "occurrences": { "lower": 1, "upper": 1 },
+    "attributes": [
+      {
+        "rm_attribute": "category",
+        "existence": { "lower": 1, "upper": 1 },
+        "children": [
+          {
+            "type": "CODE_PHRASE",
+            "terminology": "openehr",
+            "codes": ["433"]
+          }
+        ]
+      }
+    ]
+  }
+}

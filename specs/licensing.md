@@ -11,7 +11,7 @@
 | **Code** | The `anarchie` Rust binary and all source we write | **AGPL-3.0-or-later** | Strong copyleft: a hosted/networked CDR must share its source, keeping the project and its derivatives open. |
 | **Our own documentation** | The README, the docs site, and our specs prose (this file included) | **CC-BY-SA-4.0** | Our first-party writing, under the house-style content licence. Distinct from the openEHR specifications below, which we implement but never redistribute. |
 | **openEHR specifications** | RM, AOM, ADL, OPT, AQL normative docs | **CC-BY-ND 3.0** (NoDerivs) — *not redistributed* | We *implement* the specs; we never ship modified copies of them. NoDerivs therefore does not constrain us. |
-| **Clinical archetypes / OPTs** | The bundled openEHR International models ([bundled-archetypes.md](bundled-archetypes.md)) | **CC-BY-SA 3.0** (ShareAlike) | ShareAlike explicitly permits redistribution and derivatives (OPT generation), with attribution and share-alike. |
+| **Clinical archetypes / OPTs** | The bundled openEHR International models ([bundled-archetypes.md](bundled-archetypes.md)) | Source-declared **CC-BY-SA 3.0 or 4.0** (ShareAlike) | ShareAlike explicitly permits redistribution and derivatives (OPT generation), with attribution and share-alike. Existing starter derivatives retain their documented 3.0 provenance; future packages preserve licence evidence per artefact. |
 | **Terminology** | SNOMED CT, LOINC, ICD code *content* | **Not bundled at all** | We ship only the *bindings* (code references inside archetypes), never the terminology content. The operator brings their own terminology licence. |
 
 ---
@@ -36,11 +36,11 @@
 - Any short quotation for explanatory purposes stays within fair-dealing/fair-use limits, is clearly attributed, and is never a wholesale reproduction.
 - **Not to be confused with our own writing.** The specifications above are a third-party work under CC-BY-ND. The documentation *we* write - this repository's README, the `docs/` site, and the `specs/` prose (including this file) - is our own first-party material under **CC-BY-SA-4.0** (the house-style content licence). Sharing and adapting our docs is welcome under CC-BY-SA-4.0's attribution and share-alike terms; that licence has no bearing on the openEHR specifications, which we never redistribute.
 
-## 3. Archetypes / OPTs — CC-BY-SA 3.0 (bundled as data, segregated from code)
+## 3. Archetypes / OPTs - CC-BY-SA (bundled as data, segregated from code)
 
-- Bundled clinical models live in a **dedicated directory** (e.g. `templates/` / `archetypes/`) with their **own** `LICENSE` (CC-BY-SA 3.0) and a `NOTICE`/`ATTRIBUTION.md`. They are **not** under the code's AGPL licence.
-- The directory's `NOTICE` lists, per artefact: CKM identifier, version, original author/custodian, copyright statement (preserved verbatim from the archetype's ODIN header), and the CC-BY-SA 3.0 notice.
-- **ShareAlike obligation:** the bundled models (and any modifications/derived OPTs we generate) are themselves licensed CC-BY-SA 3.0. ShareAlike applies to *the models*, not to the `anarchie` *code* that processes them - the two are independent works distributed together (mere aggregation), which is why the directory separation matters.
+- Bundled clinical models live in dedicated package data with source-appropriate CC-BY-SA licence evidence and a `NOTICE`/`ATTRIBUTION.md`. They are **not** under the code's AGPL licence.
+- Package attribution lists, per artefact: CKM identifier, version, original author/custodian, copyright statement preserved from source, source licence declaration, and any repository-level evidence used when the artefact omits one.
+- **ShareAlike obligation:** bundled models and generated derivatives retain the applicable source ShareAlike terms. ShareAlike applies to *the models*, not to the `anarchie` *code* that processes them - the two are independent works distributed together (mere aggregation), which is why package/licence separation matters.
 - **Scope:** default bundle is **openEHR International, Published** archetypes only. National-namespace archetypes (which may carry different terms) are excluded from the default and added by users/packs at their own discretion.
 <!-- REUSE-IgnoreStart -->
 - **SPDX:** data files carry `SPDX-License-Identifier: CC-BY-SA-3.0` in an accompanying manifest where inline headers are not appropriate.
@@ -67,7 +67,7 @@ anarchie/
 ├── README.md                    ← "Licensing" section summarising all four layers
 ├── src/ …                       ← AGPL-3.0-or-later, SPDX headers
 └── templates/                   ← bundled models
-    ├── LICENSE                  ← CC-BY-SA-3.0 (the archetypes/OPTs)
+    ├── LICENSE                  ← applicable CC-BY-SA terms for this package
     ├── ATTRIBUTION.md           ← per-artefact provenance + copyright
     └── *.opt.json               ← the models themselves
 ```
@@ -80,17 +80,17 @@ This mirrors how `sct` keeps its *code* licensing distinct from the *data* (SNOM
 
 Every release must:
 
-1. Ship the root **AGPL-3.0-or-later** `LICENSE` and the `templates/` **CC-BY-SA-3.0** `LICENSE`.
+1. Ship the root **AGPL-3.0-or-later** `LICENSE`, the existing starter templates' **CC-BY-SA-3.0** evidence, and each future knowledge package's applicable CC-BY-SA licence evidence.
 2. Ship a top-level **`NOTICE`** that:
    - explains the code/specs/archetypes/terminology split in plain language,
    - attributes the openEHR Foundation for the bundled archetypes,
    - carries the **terminology-not-bundled** disclaimer verbatim.
 3. Ship `templates/ATTRIBUTION.md` with per-archetype provenance.
 4. Pass the CI dependency-licence audit (`cargo-deny` or equivalent) confirming no AGPL-incompatible dependency crept in.
-5. Re-confirm the upstream CC-BY-SA version/wording on the CKM Terms of Use page and quote it in the bundle `NOTICE`.
+5. Re-confirm upstream CKM Terms of Use and every package's artefact-level licence evidence; quote the applicable wording and report conflicts or inherited determinations rather than silently normalising them.
 
 ---
 
 ## Summary statement (for the README)
 
-> **anarchie licensing in one paragraph.** The `anarchie` software is licensed **AGPL-3.0-or-later**. It *implements* the openEHR specifications (which are CC-BY-ND and are not redistributed here). It *bundles* openEHR International clinical archetypes/templates under their original **CC-BY-SA 3.0** licence, kept in a separate directory with full attribution. It bundles **only terminology bindings, never terminology content** - SNOMED CT, LOINC, ICD and similar must be licensed and supplied separately by the operator if runtime terminology validation is wanted.
+> **anarchie licensing in one paragraph.** The `anarchie` software is licensed **AGPL-3.0-or-later**. It *implements* the openEHR specifications (which are CC-BY-ND and are not redistributed here). It *bundles* openEHR International clinical archetypes/templates under their source-declared **CC-BY-SA** terms, segregated from the code with per-artefact licence evidence and attribution. Existing starter derivatives retain their documented CC-BY-SA-3.0 provenance. It bundles **only terminology bindings, never terminology content** - SNOMED CT, LOINC, ICD and similar must be licensed and supplied separately by the operator if runtime terminology validation is wanted.

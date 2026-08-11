@@ -17,6 +17,14 @@ The full test suite (`cargo test`). Forwards arguments: `s/test <name>` runs one
 
 Run the official openEHR AQL grammar against anarchie's conformance corpus. This requires Java, `javac`, `curl`, and `sha256sum`; it downloads all third-party artefacts into a temporary directory and leaves none in the checkout. CI runs it automatically.
 
+## `s/archie-conformance`
+
+Run shared synthetic Compositions through anarchie and a source-pinned Archie 3.17.0 oracle, comparing RM + Operational Template validation verdicts. Requires Java, git, Python, and the Rust toolchain. See [`tests/archie/README.md`](../tests/archie/README.md).
+
+## `s/archie-validate`
+
+Run one canonical Composition through the test-only Archie adapter using ADL2 source or OPT2 XML and print a JSON verdict. A matching sibling Archie checkout is reused; otherwise the pinned source is fetched into ignored `target/` state.
+
 ## `s/ehrbase`
 
 Manage the disposable local EHRbase interoperability oracle: `s/ehrbase up`, `s/ehrbase down`, `s/ehrbase logs`, or `s/ehrbase status`. `s/ehrbase test` rebuilds a clean oracle, loads the shared synthetic blood-pressure Composition into EHRbase and anarchie, compares AQL results, then tears the oracle down. It requires Docker Compose, binds only to localhost, and is for synthetic test data only. See [`tests/ehrbase/README.md`](../tests/ehrbase/README.md).

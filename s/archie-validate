@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Validate canonical Composition JSON against ADL2 source or OPT2 XML with Archie.
+# A matching sibling checkout is reused; otherwise pinned Archie source is
+# fetched into ignored target/ state. Java and git are required.
+
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+suite="$root/tests/archie"
+source "$suite/archie-reference.env"
+
+if [[ $# -ne 2 ]]; then
+    printf 'usage: s/archie-validate <template.adls|template.optx> <composition.json>\n' >&2
+    exit 2
+fi
+
+for command in git java realpath; do
+    command -v "$command" >/dev/null || {
+        printf 'missing required command: %s\n' "$command" >&2
+        exit 1
+    }
+done
+
+template="$(realpath "$1")"
+composition="$(realpath "$2")"
+
+archie="${ARCHIE_CHECKOUT:-$root/../archie}"
+if [[ ! -x "$archie/gradlew" ]] || [[ "$(git -C "$archie" rev-parse HEAD 2>/dev/null || true)" != "$ARCHIE_REVISION" ]]; then
+    archie="$root/target/archie-oracle/$ARCHIE_REVISION"
+    if [[ ! -x "$archie/gradlew" ]]; then
+        printf 'Fetching pinned Archie %s...\n' "$ARCHIE_VERSION" >&2
+        mkdir -p "$archie"
+        git -C "$archie" init --quiet
+        git -C "$archie" remote get-url origin >/dev/null 2>&1 || \
+            git -C "$archie" remote add origin https://github.com/openEHR/archie.git
+        git -C "$archie" fetch --quiet --depth 1 origin "$ARCHIE_REVISION"
+        git -C "$archie" checkout --quiet FETCH_HEAD
+    fi
+fi
+
+exec "$archie/gradlew" \
+    --quiet \
+    --project-dir "$suite" \
+    --include-build "$archie" \
+    run \
+    --args="$template $composition"

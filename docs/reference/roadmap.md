@@ -73,6 +73,7 @@ Store integrity checking, and sets of Operational Templates installable as a uni
 - `anarchie fsck` - re-validate every stored Composition against the RM (and its template), independent of the index.
 - `anarchie pack add` - install a bundled pack (e.g. `ips-core`) by name or from a local directory.
 - `anarchie pack list` - list the bundled packs available to install.
+- [`anarchie knowledge inventory`](../commands/knowledge.md) - deterministically inventory a local CKM mirror checkout, including provenance, licences, dependencies, and parse limitations.
 
 ## :material-hammer-wrench: Designed and planned
 

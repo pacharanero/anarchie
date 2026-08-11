@@ -1,0 +1,22 @@
+archetype (adl_version=1.4; uid=44444444-4444-4444-8444-444444444444)
+    openEHR-EHR-CLUSTER.parent.v1
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    lifecycle_state = <"published">
+    other_details = <
+        ["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.">
+        ["revision"] = <"1.0.1">
+    >
+
+definition
+    CLUSTER[at0000] matches {*}
+
+ontology
+    term_definitions = <
+        ["en"] = <
+            items = <>
+        >
+    >

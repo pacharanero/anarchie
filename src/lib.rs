@@ -6,12 +6,14 @@
 //! The library is organised into layered modules mirroring the openEHR stack:
 //! [`rm`] (Reference Model), [`aom`] (Archetype Object Model constraints),
 //! [`opt`] (Operational Template parsing), [`validate`] (RM + Operational
-//! Template validation), [`store`] (the git-backed file store), [`query`] (the
-//! AQL engine over a derived index), and [`serve`] (the openEHR REST API and
-//! the MCP server). The `anarchie` binary is a thin CLI over these, in [`cli`].
+//! Template validation), [`knowledge`] (clinical knowledge inventory and package
+//! management), [`store`] (the git-backed file store), [`query`] (the AQL engine
+//! over a derived index), and [`serve`] (the openEHR REST API and the MCP
+//! server). The `anarchie` binary is a thin CLI over these, in [`cli`].
 
 pub mod aom;
 pub mod cli;
+pub mod knowledge;
 pub mod opt;
 pub mod query;
 pub mod rm;

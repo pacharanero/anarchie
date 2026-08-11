@@ -81,6 +81,7 @@ nav:
       - anarchie mcp: commands/mcp.md
       - anarchie fsck: commands/fsck.md
       - anarchie pack: commands/pack.md
+      - anarchie knowledge: commands/knowledge.md
   - Reference:
       - On-disk Format: reference/on-disk-format.md
       - Versioning and Git: reference/versioning-and-git.md

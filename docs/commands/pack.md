@@ -62,11 +62,13 @@ Bundled packs:
 ## Roadmap
 
 Packs are installed from what is bundled with the binary or from a local
-directory. A networked registry - integration with **kam**, a Knowledge
-Artefacts Package Manager, for fetching and resolving published packs - is
-planned future work.
+directory. The Knowledge Artefacts Manager is being built into `anarchie`; the
+first implemented step is the read-only
+[`anarchie knowledge inventory`](knowledge.md) command. Manifest/lock
+resolution, secure package archives, and a networked registry remain future
+work.
 
 ## See also
 
-- [anarchie template](template.md) · [anarchie validate](validate.md)
+- [anarchie template](template.md) · [anarchie validate](validate.md) · [anarchie knowledge](knowledge.md)
 - [Roadmap](../reference/roadmap.md)

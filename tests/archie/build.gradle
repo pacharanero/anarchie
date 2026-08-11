@@ -1,0 +1,18 @@
+// SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.nedap.healthcare.archie:archie-all:3.17.0'
+}
+
+application {
+    mainClass = 'org.anarchie.oracle.ArchieValidator'
+}

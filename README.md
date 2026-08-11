@@ -66,6 +66,7 @@ Mirroring `sct`'s pluripotent-subcommands style, everything compiles into one `a
 anarchie init [--minimal]                  scaffold a CDR (seeds IPS-aligned starter templates by default)
 anarchie template add <opt.json>           register an Operational Template (the schema)
 anarchie pack add <name|dir>               install an archetype pack (e.g. ips-core)
+anarchie knowledge inventory <checkout>    inventory a CKM mirror checkout without modifying it
 
 # the clinical record
 anarchie ehr new                           create a patient record (its own git repo)
@@ -104,7 +105,7 @@ The only runtime dependency is the system `git`. More channels - Homebrew, Windo
 
 ## Status
 
-⚙️ **Working and experimental.** The Reference Model, the git-backed store, native RM + Operational Template validation, the AQL query engine, the openEHR REST API, the stdio MCP server, store `fsck`, and installable archetype packs are all implemented and runnable today. The [specs in specs/](specs/) capture the architecture and the open questions; the [roadmap](specs/roadmap.md) tracks what is shipped versus deferred. This remains a learning and design exploration - **not a certified or production CDR, and not for use with real patient data.** Feedback and challenge welcome.
+⚙️ **Working and experimental.** The Reference Model, the git-backed store, native RM + Operational Template validation, the AQL query engine, the openEHR REST API, the stdio MCP server, store `fsck`, installable archetype packs, and deterministic CKM source inventory are all implemented and runnable today. The [specs in specs/](specs/) capture the architecture and the open questions; the [roadmap](specs/roadmap.md) tracks what is shipped versus deferred. This remains a learning and design exploration - **not a certified or production CDR, and not for use with real patient data.** Feedback and challenge welcome.
 
 ## Documents
 
@@ -115,10 +116,12 @@ The only runtime dependency is the system `git`. More channels - Homebrew, Windo
 - [specs/serialisation-formats.md](specs/serialisation-formats.md) - canonical JSON / XML / FLAT / STRUCTURED / Web Template
 - [specs/query-engine.md](specs/query-engine.md) - how AQL gets executed over flat files
 - [specs/validation.md](specs/validation.md) - RM + template validation strategy
+- [specs/conformance.md](specs/conformance.md) - executable profiles, corpora, oracles, evidence levels, and release reporting
 - [specs/openehr-terminology-codes.md](specs/openehr-terminology-codes.md) - the openEHR-internal code groups (change-type, lifecycle, category, ISM)
 - [specs/rest-api.md](specs/rest-api.md) - openEHR REST API surface and conformance
 - [specs/scaling.md](specs/scaling.md) - the performance envelope and where files stop being a good idea
 - [specs/bundled-archetypes.md](specs/bundled-archetypes.md) - "batteries included": shipping a curated, licensed OPT starter set
+- [specs/knowledge-packages.md](specs/knowledge-packages.md) - the complete published archetype library, `knowledge.toml` / `knowledge.lock`, package resolution, distribution, and scope boundaries
 - [specs/ips-readiness.md](specs/ips-readiness.md) - the gap to a full International Patient Summary demo (templates, FHIR projection, terminology)
 - [specs/regulatory-context.md](specs/regulatory-context.md) - how anarchie relates to EHDS, EEHRxF, xDHR, and ESHIA
 - [specs/licensing.md](specs/licensing.md) - the four-layer licensing approach (code / specs / archetypes / terminology)

@@ -31,6 +31,7 @@ path = [
   "tests/fixtures/**",
   "tests/aql-conformance/**",
   "tests/ehrbase/**",
+  "tests/archie/**",
   "examples/**",
   "wix/**",
 ]

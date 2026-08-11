@@ -19,6 +19,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use crate::store::Deployment;
 
 mod inspect;
+mod knowledge;
 mod query;
 mod record;
 mod schema;
@@ -187,6 +188,11 @@ enum Command {
         #[command(subcommand)]
         command: Option<PackCommand>,
     },
+    /// Inspect and manage clinical knowledge artefacts and packages.
+    Knowledge {
+        #[command(subcommand)]
+        command: Option<KnowledgeCommand>,
+    },
     /// Report the anarchie version.
     Version,
     /// Generate shell completion scripts.
@@ -212,6 +218,15 @@ pub(crate) enum PackCommand {
     },
     /// List the bundled packs available to install.
     List,
+}
+
+#[derive(Subcommand)]
+pub(crate) enum KnowledgeCommand {
+    /// Inventory an openEHR CKM mirror checkout without modifying it.
+    Inventory {
+        /// Path to a CKM mirror checkout containing local/ or remote/.
+        checkout: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -353,6 +368,10 @@ fn dispatch() -> Result<()> {
         Command::Pack { command } => match command {
             Some(c) => schema::pack(format, c),
             None => subcommand_help("pack"),
+        },
+        Command::Knowledge { command } => match command {
+            Some(c) => knowledge::run(format, c),
+            None => subcommand_help("knowledge"),
         },
         Command::Version => version(format),
         Command::Completions {

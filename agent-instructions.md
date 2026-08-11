@@ -13,7 +13,7 @@ This file is the entry point for AI coding agents. Read it before changing anyth
 
 - [README.md](README.md) - what anarchie is, the core idea, setup, and the four-layer licensing.
 - [specs/roadmap.md](specs/roadmap.md) - current state and remaining work, with `[x]`/`[~]`/`[ ]` status.
-- [specs/](specs/) - durable design decisions (architecture, on-disk format, validation, versioning-and-git, query-engine, licensing, ips-readiness, regulatory-context).
+- [specs/](specs/) - durable design decisions (architecture, on-disk format, validation, conformance, knowledge packages, versioning-and-git, query-engine, licensing, ips-readiness, regulatory-context).
 - [docs/walkthrough/](docs/walkthrough/) - the guided feature tour; keep it runnable (see the invariant below).
 - [~/code/house-style/AGENTS.md](~/code/house-style/AGENTS.md) - cross-repo engineering standards.
 
@@ -23,7 +23,7 @@ This file is the entry point for AI coding agents. Read it before changing anyth
 - **Single binary, no runtime.** The shipped artefact depends only on the system `git`. No JVM, no database server ever ships. Archie and EHRbase are *test-time oracles only*, never a runtime dependency.
 - **Validation at the door.** Every commit is validated (RM + Operational Template) before anything is written to git; non-conformant data must never reach the store. `--no-validate` is the only documented bypass.
 - **Canonical serialisation is byte-stable.** Parse -> canonicalise round-trips without drift; equal Compositions serialise byte-for-byte equal. Do not break this - it underpins diffing, hashing, and git stability.
-- **The four-layer licensing split is maintained** (code AGPL-3.0-or-later / anarchie's own prose CC-BY-SA-4.0 / bundled CKM archetypes CC-BY-SA-3.0 / openEHR specs CC-BY-ND, not redistributed). See [specs/licensing.md](specs/licensing.md). Keep `reuse lint` green.
+- **The four-layer licensing split is maintained** (code AGPL-3.0-or-later / anarchie's own prose CC-BY-SA-4.0 / bundled CKM artefacts under source-declared CC-BY-SA terms with the current starter derivatives at 3.0 / openEHR specs CC-BY-ND, not redistributed). See [specs/licensing.md](specs/licensing.md). Keep `reuse lint` green.
 - **The walkthrough stays runnable.** `docs/walkthrough/` commands must work against the real binary; `examples/vitals.json` is guarded by a test to stay in step with the fixture. If you change CLI output, update the walkthrough in the same change.
 
 ## Workflow

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "valid",
+    "mutation": "none",
+    "expected_valid": true
+  },
+  {
+    "id": "wrong-category-code",
+    "mutation": "wrong_category_code",
+    "expected_valid": false
+  },
+  {
+    "id": "empty-rm-version",
+    "mutation": "empty_rm_version",
+    "expected_valid": false
+  },
+  {
+    "id": "empty-language-code",
+    "mutation": "empty_language_code",
+    "expected_valid": false
+  },
+  {
+    "id": "empty-territory-code",
+    "mutation": "empty_territory_code",
+    "expected_valid": false
+  },
+  {
+    "id": "empty-archetype-node-id",
+    "mutation": "empty_archetype_node_id",
+    "expected_valid": false
+  }
+]

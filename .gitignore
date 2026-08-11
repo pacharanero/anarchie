@@ -1,6 +1,10 @@
 # Rust build artefacts
 /target
 
+# Test-only Archie/Gradle oracle build artefacts
+/tests/archie/.gradle
+/tests/archie/build
+
 # Backup/editor files
 **/*.rs.bk
 *.pdb

@@ -39,11 +39,11 @@ These are inherited from `sct` and adapted for a read-write clinical store.
 ├──────────────────────────────────────────────────────────┤
 │   Canonical Composition JSON on disk  (the EHR tree)     │  ← Layer 1: the source of truth
 ├──────────────────────────────────────────────────────────┤
-│   Operational Templates (OPTs) + Reference Model         │  ← Layer 0: schema / substrate
+│   Resolved knowledge packages + Reference Model          │  ← Layer 0: schema / substrate
 └──────────────────────────────────────────────────────────┘
 ```
 
-Each layer consumes the layer below it. **Layer 1 is the stable interface.** Everything above Layer 1 is rebuildable from Layer 1 plus Layer 0. Nothing above Layer 1 is authoritative.
+Each layer consumes the layer below it. **Layer 1 is the stable clinical-data interface.** Everything above Layer 1 is rebuildable from Layer 1 plus Layer 0. Nothing above Layer 1 is authoritative. Layer 0 is resolved and locked schema material: archetypes, Operational Templates, Web Templates, provenance, and the Reference Model. See [knowledge-packages.md](knowledge-packages.md).
 
 Contrast with `sct`, whose centre (Layer 1) is a single immutable NDJSON file because terminology is read-only reference data. `anarchie`'s Layer 1 is a *growing tree of immutable files*, because a CDR accumulates new versions over time. The immutability is per-file, not per-store.
 
@@ -98,7 +98,7 @@ The index is **derived and rebuildable**. A query against a stale index is a cor
 ## What is deliberately out of scope (initially)
 
 - **Multi-node clustering / replication** - single-node, single-filesystem to start. Git remotes are the crude replication story.
-- **Full ADL 2 / ADL 1.4 authoring** - `anarchie` consumes Operational Templates; it does not author archetypes. That is the Archetype Designer's job.
+- **Full ADL 2 / ADL 1.4 authoring** - `anarchie` manages, inspects, resolves, compiles through pinned build adapters, and consumes knowledge packages; it is not a clinical modelling editor. That remains the Archetype Designer's job. See [knowledge-packages.md](knowledge-packages.md).
 - **Demographics / EHR_STATUS party resolution against an external PDS** - subject references are stored opaquely.
 - **Terminology validation** - delegated. Notably this is exactly where `sct` slots in: an `anarchie` validator could call `sct` to validate SNOMED/terminology bindings. The two tools compose.
 
@@ -129,6 +129,19 @@ The collision point - and the interesting future question - is whether a gitehr 
 - **Small deployments** - clinics or registries with modest data volumes where operational simplicity beats horizontal scale.
 - **AI/agent workflows** - an MCP-native CDR whose data is plain files an agent can read directly.
 - **Archival and portability** - a patient's entire record as a tarball of readable JSON, under version control.
+
+---
+
+## Product and module boundary
+
+The batteries-included knowledge system and conformance programme remain part of one `anarchie` product and one shipped binary, but they are separate architectural planes rather than additions to the runtime write path:
+
+1. The **runtime data plane** stores, validates, versions, queries, and serves clinical data using already resolved installed knowledge.
+2. The **knowledge management plane** owns `knowledge.toml`, `knowledge.lock`, package resolution, installation, activation, provenance, and inspection.
+3. The **package build plane** harvests upstream repositories and invokes pinned heavyweight compilers outside normal runtime operation.
+4. The **conformance plane** runs external grammars, Archie, EHRbase, schemas, and real clients as test-time evidence only.
+
+One CLI is appropriate while these planes share anarchie's model, validator, filesystem transaction, and user workflow. Extraction is consumer-driven: a second product, independent release cadence, damaged runtime portability, security boundary, or unmaintainable dependency cycles must exist before a separate package-manager tool or corpus repository is justified. See [knowledge-packages.md](knowledge-packages.md) and [conformance.md](conformance.md).
 
 ---
 

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Marcus Baw and Baw Medical Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Run shared synthetic Compositions through Archie and anarchie and compare
+# their RM + Operational Template validation verdicts.
+
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+
+command -v python3 >/dev/null || {
+    printf 'missing required command: python3\n' >&2
+    exit 1
+}
+
+cargo build --quiet --manifest-path "$root/Cargo.toml"
+exec python3 "$root/tests/archie/differential.py" \
+    --root "$root" \
+    --binary "$root/target/debug/anarchie" \
+    "$@"

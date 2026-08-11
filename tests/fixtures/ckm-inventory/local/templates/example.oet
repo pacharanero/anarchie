@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns="openEHR/v1/Template">
+  <id>33333333-3333-4333-8333-333333333333</id>
+  <name>Inventory example</name>
+  <description>
+    <lifecycle_state>release_candidate</lifecycle_state>
+    <other_details>
+      <item>
+        <key>licence</key>
+        <value>This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.</value>
+      </item>
+    </other_details>
+  </description>
+  <definition archetype_id="openEHR-EHR-CLUSTER.parent.v2"/>
+  <Items archetype_id="openEHR-EHR-CLUSTER.absent.v1"/>
+</template>

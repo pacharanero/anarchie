@@ -237,6 +237,7 @@ fn apply_leaf(value: &Value, constraint: &CObject, path: &str, report: &mut Vali
 fn coded_value(value: &Value) -> Option<(&str, &str)> {
     let code = match value.get("_type").and_then(Value::as_str) {
         Some("DV_CODED_TEXT") => value.get("defining_code")?,
+        _ if value.get("defining_code").is_some() => value.get("defining_code")?,
         _ if value.get("code_string").is_some() => value,
         _ => return None,
     };
@@ -264,4 +265,23 @@ fn as_children(value: Option<&Value>) -> Vec<&Value> {
 
 fn node_id_of(value: &Value) -> Option<&str> {
     value.get("archetype_node_id").and_then(Value::as_str)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn coded_value_accepts_monomorphic_dv_coded_text_without_type_tag() {
+        let value = json!({
+            "value": "event",
+            "defining_code": {
+                "terminology_id": { "value": "openehr" },
+                "code_string": "433"
+            }
+        });
+
+        assert_eq!(coded_value(&value), Some(("openehr", "433")));
+    }
 }

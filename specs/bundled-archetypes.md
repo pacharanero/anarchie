@@ -2,22 +2,24 @@
 
 > The thesis: a major reason openEHR adoption stalls is that a newcomer downloads a CDR and faces an *empty* repository with no models, no templates, and a steep authoring learning curve before they can store a single blood pressure. `anarchie` should ship with a **curated, working set of Operational Templates** so that `anarchie init` gives you a CDR that can store real clinical data *immediately*.
 
+This document records the starter-set decision that has already seeded the implementation. [knowledge-packages.md](knowledge-packages.md) defines the larger destination: a complete published International archetype library, executable template catalogue, manifest/lock resolver, package format, registry, and conformance release gates.
+
 This mirrors `sct`'s philosophy of producing a usable artefact out of the box, and SQLite's "it just works with no setup" ergonomics. It is arguably the single most adoption-friendly thing the project could do.
 
 ---
 
 ## Is it allowed? (Licensing)
 
-**Yes - the openEHR International (CKM) archetypes are explicitly licensed for redistribution and derivative use.** But the detail matters, so it is stated precisely here.
+**Yes - the openEHR International CKM mirror permits redistribution and derivative use under Creative Commons Attribution-ShareAlike.** But exact versions vary: the mirror root currently states CC-BY-SA-3.0 while many current archetype metadata blocks state CC-BY-SA-4.0 and some omit an artefact-level declaration. Existing starter derivatives retain their documented 3.0 provenance; future packages preserve and audit each source declaration rather than applying one blanket version.
 
 There are *two different licences* in the openEHR world, and they are often conflated (the full four-layer picture - code, specs, archetypes, terminology - is in [licensing.md](licensing.md)):
 
 | Material | Licence | Can we bundle/derive? |
 |---|---|---|
 | openEHR **specifications** (RM, AOM, ADL, OPT docs) | CC-BY-**ND** 3.0 (NoDerivs) | We don't need to - we *implement* them, we don't redistribute them. NoDerivs is irrelevant to an implementation. |
-| openEHR **CKM clinical archetypes & templates** (international) | CC-BY-**SA** 3.0 (ShareAlike) | **Yes.** Redistribution and derivatives are permitted with attribution and share-alike. |
+| openEHR **CKM clinical archetypes & templates** (international) | Source-declared CC-BY-**SA** 3.0 or 4.0 (ShareAlike) | **Yes.** Redistribution and derivatives are permitted with attribution and share-alike; exact evidence is retained per artefact. |
 
-The crucial one is **CC-BY-SA 3.0** on the clinical models. ShareAlike permits exactly what bundling needs:
+The crucial property is **CC-BY-SA** on the clinical models. ShareAlike permits exactly what bundling needs:
 
 - **Redistribute** the archetypes/OPTs alongside `anarchie`. ✅
 - **Create derivatives** - and generating an Operational Template from archetypes + a template *is* a derivative/transformation. ✅
@@ -25,7 +27,7 @@ The crucial one is **CC-BY-SA 3.0** on the clinical models. ShareAlike permits e
 
 ### Practical licensing requirements
 
-1. **Dual-license the repo.** The `anarchie` *code* is under **AGPL-3.0-or-later**. The *bundled archetypes/OPTs* live in their own directory under **CC-BY-SA 3.0**, with a clear `LICENSE` and `NOTICE` in that directory. This separation is standard practice (it is how `sct` keeps SNOMED *data* licensing distinct from its *code* licensing, and how many projects ship CC data with permissive code). The full approach is specified in [licensing.md](licensing.md).
+1. **Separate code and model licences.** The `anarchie` *code* is under **AGPL-3.0-or-later**. Bundled archetypes/OPTs live in their own package data with source-appropriate CC-BY-SA licensing, a clear `LICENSE`/evidence record, and attribution. This separation is standard practice (it is how `sct` keeps SNOMED *data* licensing distinct from its *code* licensing, and how many projects ship CC data with permissive code). The full approach is specified in [licensing.md](licensing.md).
 2. **Attribution / provenance.** Ship a `NOTICE`/`ATTRIBUTION.md` listing each archetype, its CKM identifier, version, author/custodian, and the CC-BY-SA notice. CKM archetypes already carry rich `description`/`original_author`/`copyright` metadata in their ODIN header - preserve it; do not strip it.
 3. **Stick to openEHR International (CKM) published archetypes.** National programmes (e.g. Norway, UK NHS, Catalonia) publish under their own namespaces and *may* attach different terms. The internationally-governed CKM content under the `openEHR` namespace is the safe, clearly CC-BY-SA set. Prefer **Published** (not Draft) archetypes for the default bundle.
 4. **Terminology is NOT bundled.** An archetype contains terminology *bindings* (references to SNOMED CT / LOINC codes), not the terminology *content*. Shipping archetypes therefore does **not** redistribute SNOMED CT or LOINC, and does not require their licences. *Validating* those bindings at runtime is a separate, optional step delegated to a terminology backend (e.g. [`sct`](https://github.com/pacharanero/sct)), for which the operator supplies their own SNOMED licence. This keeps `anarchie` itself free of terminology-licensing entanglements.
@@ -107,7 +109,7 @@ These eight templates roughly span the IPS content sections (problems, medicatio
 
 ## A possible "archetype pack" ecosystem (future)
 
-Beyond the built-in starter set, the bundling mechanism naturally extends to **installable packs**, echoing `sct`'s codelist/refset model and the sibling [Knowledge Artefacts Package Manager](https://github.com/pacharanero/knowledge-artefacts-package-manager) (`kam`) in this very workspace:
+Beyond the built-in starter set, the bundling mechanism naturally extends to **installable packs**, echoing `sct`'s codelist/refset model. The historical [Knowledge Artefacts Package Manager](https://github.com/pacharanero/knowledge-artefacts-package-manager) proposal is prior art; anarchie's canonical Knowledge Artefacts Manager design now lives in [knowledge-packages.md](knowledge-packages.md):
 
 ```
 anarchie pack add ips           # the International Patient Summary set (default)
@@ -116,7 +118,7 @@ anarchie pack add nhs-uk        # a national pack (user accepts that pack's term
 anarchie pack list
 ```
 
-Each pack is a versioned set of OPTs plus a provenance/licence manifest. This is where `anarchie` could genuinely move the needle on the "empty CDR" adoption problem: not just batteries included, but a clean way to add more batteries. It also dovetails with `kam`, which already exists to manage openEHR knowledge artefacts - `anarchie` could consume `kam` packages directly rather than reinventing packaging.
+Each pack is a versioned set of source and generated artefacts plus a provenance/licence manifest. This is where `anarchie` could genuinely move the needle on the "empty CDR" adoption problem: not just batteries included, but a clean way to add more batteries. Interoperability with another package format can be added when a real package producer or consumer exists; anarchie should not maintain two speculative package systems.
 
 ---
 
