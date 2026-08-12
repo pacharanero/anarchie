@@ -7,12 +7,14 @@
 //! activation build on this evidence model; see `specs/knowledge-packages.md`.
 
 mod inventory;
+mod package;
 mod resolution;
 
 pub use inventory::{
     Artifact, ArtifactKind, DependencyIssue, DependencyIssueKind, Inventory, InventoryError,
     InventorySummary, SourceEvidence,
 };
+pub use package::{InstalledPackage, PackageArchive, PackageError, PackageFile, PackageManifest};
 pub use resolution::{
     ArtefactSelection, DecisionReason, KnowledgeDeclaration, KnowledgeLock, KnowledgeManifest,
     KnowledgeStatus, KnowledgeStatusState, LanguagePolicy, LockedArtefact, LockedKnowledge,

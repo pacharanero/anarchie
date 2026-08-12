@@ -9,6 +9,10 @@ can register in one step. A pack is a convenient bundle of the same
 ```bash
 anarchie pack add <name|dir>
 anarchie pack list
+anarchie pack build <source> <archive.tar.zst>
+anarchie pack inspect <archive.tar.zst>
+anarchie pack verify <archive.tar.zst>
+anarchie pack install <archive.tar.zst>
 ```
 
 ## anarchie pack add
@@ -59,14 +63,47 @@ Bundled packs:
   - ips-core
 ```
 
+## Package archives
+
+Build a reproducible, data-only knowledge package archive from a package source
+directory:
+
+```bash
+anarchie pack build ./example-package ./example-1.0.0.tar.zst
+anarchie pack inspect ./example-1.0.0.tar.zst
+anarchie pack verify ./example-1.0.0.tar.zst
+```
+
+The source must contain `knowledge-package.toml` with a package name, version,
+and `format_version = 1`. Package data is limited to `artefacts/` and
+`provenance/`; the builder writes deterministic tar metadata, zstd compression,
+and `checksums.sha256` for every data file.
+
+`inspect` validates archive paths, entry types, manifest identity, file-count
+and compressed/expanded-size limits without extraction. `verify` additionally
+checks every declared SHA-256. Links, unsafe or non-canonical paths, undeclared
+paths, duplicate entries, and checksum mismatches are rejected.
+
+`install` runs the same full verification, then writes the package into the
+current deployment under `knowledge/packages/sha256-<archive-digest>/`. It
+stages the complete verified package before atomically activating that directory;
+failure removes the staging directory and leaves existing package content alone.
+Installing the same archive again is idempotent.
+
+!!! note "Build and verify only"
+    Content-addressed package material is installed, but it is not yet activated
+    for validation and no templates are registered from it. Package removal,
+    activation, rollback, and coexistence policy remain the next K4/K8
+    increments. `pack add` continues to install legacy local template
+    directories and does not accept archive files yet.
+
 ## Roadmap
 
 Packs are installed from what is bundled with the binary or from a local
-directory. The Knowledge Artefacts Manager is being built into `anarchie`; the
-first implemented step is the read-only
-[`anarchie knowledge inventory`](knowledge.md) command. Manifest/lock
-resolution, secure package archives, and a networked registry remain future
-work.
+directory. The Knowledge Artefacts Manager now provides CKM inventory,
+manifest/lock resolution, and reproducible package build/inspection/verification.
+Secure extraction and installation, activation, and a networked registry remain
+future work.
 
 ## See also
 

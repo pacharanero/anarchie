@@ -168,6 +168,66 @@ fn pack_list_shows_the_bundled_ips_core() {
 }
 
 #[test]
+fn package_build_inspect_and_verify_round_trip() {
+    let source = tempfile::tempdir().expect("package source");
+    let output = tempfile::tempdir().expect("package output");
+    std::fs::create_dir_all(source.path().join("artefacts/archetypes")).expect("create content");
+    std::fs::write(
+        source.path().join("knowledge-package.toml"),
+        "format_version = 1\nname = \"example\"\nversion = \"1.0.0\"\n",
+    )
+    .expect("write manifest");
+    std::fs::write(
+        source.path().join("artefacts/archetypes/example.adl"),
+        "archetype example\n",
+    )
+    .expect("write artefact");
+    let archive = output.path().join("example-1.0.0.tar.zst");
+
+    Command::cargo_bin("anarchie")
+        .expect("binary")
+        .args(["pack", "build"])
+        .arg(source.path())
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("Built package:")
+                .and(predicate::str::contains("example@1.0.0")),
+        );
+    Command::cargo_bin("anarchie")
+        .expect("binary")
+        .args(["pack", "inspect"])
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Package: example@1.0.0"));
+    Command::cargo_bin("anarchie")
+        .expect("binary")
+        .args(["pack", "verify"])
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Package verified: example@1.0.0"));
+
+    let deployment = init_deployment();
+    anarchie()
+        .current_dir(&deployment)
+        .args(["pack", "install"])
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Installed package: example@1.0.0"));
+    anarchie()
+        .current_dir(&deployment)
+        .args(["pack", "install"])
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Existing package: example@1.0.0"));
+}
+
+#[test]
 fn commit_lifecycle_log_cat_and_fsck() {
     let dir = init_deployment();
 

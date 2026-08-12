@@ -90,5 +90,61 @@ pub(crate) fn pack(format: Format, command: super::PackCommand) -> Result<()> {
                 }
             })
         }
+        super::PackCommand::Build { source, archive } => {
+            let package = crate::knowledge::PackageArchive::build(&source, &archive)
+                .with_context(|| format!("building package from {}", source.display()))?;
+            emit(format, &serde_json::to_value(&package)?, || {
+                println!("Built package: {}", archive.display());
+                println!(
+                    "Package: {}@{}",
+                    package.manifest.name, package.manifest.version
+                );
+                println!("Files: {}", package.files.len());
+                println!("SHA-256: {}", package.archive_sha256);
+            })
+        }
+        super::PackCommand::Inspect { archive } => {
+            let package = crate::knowledge::PackageArchive::inspect(&archive)
+                .with_context(|| format!("inspecting package {}", archive.display()))?;
+            emit(format, &serde_json::to_value(&package)?, || {
+                println!(
+                    "Package: {}@{}",
+                    package.manifest.name, package.manifest.version
+                );
+                println!("Files: {}", package.files.len());
+                println!("SHA-256: {}", package.archive_sha256);
+            })
+        }
+        super::PackCommand::Verify { archive } => {
+            let package = crate::knowledge::PackageArchive::verify(&archive)
+                .with_context(|| format!("verifying package {}", archive.display()))?;
+            emit(format, &serde_json::to_value(&package)?, || {
+                println!(
+                    "Package verified: {}@{}",
+                    package.manifest.name, package.manifest.version
+                );
+                println!("Files: {}", package.files.len());
+                println!("SHA-256: {}", package.archive_sha256);
+            })
+        }
+        super::PackCommand::Install { archive } => {
+            let deployment = open_deployment()?;
+            let installed = crate::knowledge::PackageArchive::install(&archive, deployment.root())
+                .with_context(|| format!("installing package {}", archive.display()))?;
+            emit(format, &serde_json::to_value(&installed)?, || {
+                println!(
+                    "{} package: {}@{}",
+                    if installed.already_installed {
+                        "Existing"
+                    } else {
+                        "Installed"
+                    },
+                    installed.package.manifest.name,
+                    installed.package.manifest.version
+                );
+                println!("Path: {}", installed.path);
+                println!("SHA-256: {}", installed.package.archive_sha256);
+            })
+        }
     }
 }

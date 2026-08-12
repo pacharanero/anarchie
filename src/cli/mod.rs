@@ -218,6 +218,28 @@ pub(crate) enum PackCommand {
     },
     /// List the bundled packs available to install.
     List,
+    /// Build a deterministic, data-only knowledge package archive.
+    Build {
+        /// Source directory containing knowledge-package.toml and package content.
+        source: PathBuf,
+        /// Destination .tar.zst archive path.
+        archive: PathBuf,
+    },
+    /// Inspect a package archive without extracting it.
+    Inspect {
+        /// Path to a .tar.zst package archive.
+        archive: PathBuf,
+    },
+    /// Verify package structure and every declared content checksum.
+    Verify {
+        /// Path to a .tar.zst package archive.
+        archive: PathBuf,
+    },
+    /// Verify and install a package archive into the current deployment.
+    Install {
+        /// Path to a .tar.zst package archive.
+        archive: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
