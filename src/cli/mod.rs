@@ -240,6 +240,10 @@ pub(crate) enum PackCommand {
         /// Path to a .tar.zst package archive.
         archive: PathBuf,
     },
+    /// List content-addressed packages installed in the current deployment.
+    Installed,
+    /// Rehash and verify every content-addressed package in the current deployment.
+    Audit,
 }
 
 #[derive(Subcommand)]

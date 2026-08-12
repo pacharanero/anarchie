@@ -13,6 +13,8 @@ anarchie pack build <source> <archive.tar.zst>
 anarchie pack inspect <archive.tar.zst>
 anarchie pack verify <archive.tar.zst>
 anarchie pack install <archive.tar.zst>
+anarchie pack installed
+anarchie pack audit
 ```
 
 ## anarchie pack add
@@ -90,12 +92,18 @@ stages the complete verified package before atomically activating that directory
 failure removes the staging directory and leaves existing package content alone.
 Installing the same archive again is idempotent.
 
+`installed` lists the deployment's content-addressed package material. `audit`
+reverifies the retained archive, then rehashes every installed package file against
+its archive checksums. It is read-only and fails if the archive or package material
+has been altered.
+
 !!! note "Build and verify only"
-    Content-addressed package material is installed, but it is not yet activated
-    for validation and no templates are registered from it. Package removal,
-    activation, rollback, and coexistence policy remain the next K4/K8
-    increments. `pack add` continues to install legacy local template
-    directories and does not accept archive files yet.
+    Content-addressed package material is installed and auditable, but it is not
+    yet activated for validation and no templates are registered from it.
+    Removal, activation, rollback, and coexistence policy remain K8 work because
+    contributions must retain the exact template digests they used. `pack add`
+    continues to install legacy local template directories and does not accept
+    archive files yet.
 
 ## Roadmap
 

@@ -225,6 +225,18 @@ fn package_build_inspect_and_verify_round_trip() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Existing package: example@1.0.0"));
+    anarchie()
+        .current_dir(&deployment)
+        .args(["pack", "installed"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("example@1.0.0"));
+    anarchie()
+        .current_dir(&deployment)
+        .args(["pack", "audit"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Verified 1 installed package(s)"));
 }
 
 #[test]

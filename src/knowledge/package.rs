@@ -15,6 +15,7 @@ use thiserror::Error;
 const FORMAT_VERSION: u32 = 1;
 const MANIFEST_PATH: &str = "knowledge-package.toml";
 const CHECKSUMS_PATH: &str = "checksums.sha256";
+const ARCHIVE_PATH: &str = "package.tar.zst";
 const MAX_FILES: usize = 10_000;
 const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_EXPANDED_BYTES: u64 = 64 * 1024 * 1024;
@@ -52,6 +53,13 @@ pub struct InstalledPackage {
     pub package: PackageArchive,
     pub path: String,
     pub already_installed: bool,
+}
+
+/// An installed package with its content-addressed directory name.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct StoredPackage {
+    pub digest: String,
+    pub package: PackageArchive,
 }
 
 #[derive(Debug, Error)]
@@ -107,6 +115,10 @@ pub enum PackageError {
     ChecksumForMissingFile(String),
     #[error("archive must have a .tar.zst extension: `{0}`")]
     WrongExtension(PathBuf),
+    #[error("invalid package store entry `{0}`")]
+    InvalidStoreEntry(String),
+    #[error("installed package digest mismatch: expected {expected}, got {actual}")]
+    StoreDigestMismatch { expected: String, actual: String },
 }
 
 impl PackageArchive {
@@ -193,7 +205,7 @@ impl PackageArchive {
             path: staging.clone(),
             source,
         })?;
-        let result = write_installed_package(&staging, &package, &files);
+        let result = write_installed_package(&staging, archive, &package, &files);
         if let Err(error) = result {
             let _ = fs::remove_dir_all(&staging);
             return Err(error);
@@ -211,6 +223,91 @@ impl PackageArchive {
             already_installed: false,
         })
     }
+
+    /// List every well-formed package materialised in a deployment.
+    pub fn list_installed(deployment_root: &Path) -> Result<Vec<StoredPackage>, PackageError> {
+        let packages = deployment_root.join("knowledge").join("packages");
+        if !packages.exists() {
+            return Ok(Vec::new());
+        }
+        let mut directories = fs::read_dir(&packages)
+            .map_err(|source| PackageError::Io {
+                path: packages.clone(),
+                source,
+            })?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|source| PackageError::Io {
+                path: packages.clone(),
+                source,
+            })?;
+        directories.sort_by_key(|entry| entry.file_name());
+        let mut stored = Vec::new();
+        for directory in directories {
+            let path = directory.path();
+            if !directory
+                .file_type()
+                .map_err(|source| PackageError::Io {
+                    path: path.clone(),
+                    source,
+                })?
+                .is_dir()
+            {
+                continue;
+            }
+            let name = directory.file_name().to_string_lossy().to_string();
+            let digest = store_digest(&name)?;
+            let package = read_installed_package(&path, &digest, false)?;
+            stored.push(StoredPackage { digest, package });
+        }
+        Ok(stored)
+    }
+
+    /// Audit every installed package's materialised files and checksums.
+    pub fn audit_installed(deployment_root: &Path) -> Result<Vec<StoredPackage>, PackageError> {
+        let packages = deployment_root.join("knowledge").join("packages");
+        if !packages.exists() {
+            return Ok(Vec::new());
+        }
+        let mut directories = fs::read_dir(&packages)
+            .map_err(|source| PackageError::Io {
+                path: packages.clone(),
+                source,
+            })?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|source| PackageError::Io {
+                path: packages.clone(),
+                source,
+            })?;
+        directories.sort_by_key(|entry| entry.file_name());
+        let mut stored = Vec::new();
+        for directory in directories {
+            let path = directory.path();
+            if !directory
+                .file_type()
+                .map_err(|source| PackageError::Io {
+                    path: path.clone(),
+                    source,
+                })?
+                .is_dir()
+            {
+                continue;
+            }
+            {
+                let name = directory.file_name().to_string_lossy().to_string();
+                let digest = store_digest(&name)?;
+                let package = read_installed_package(&directory.path(), &digest, true)?;
+                stored.push(StoredPackage { digest, package });
+            }
+        }
+        Ok(stored)
+    }
+}
+
+fn store_digest(name: &str) -> Result<String, PackageError> {
+    name.strip_prefix("sha256-")
+        .filter(|digest| digest.len() == 64 && digest.bytes().all(|byte| byte.is_ascii_hexdigit()))
+        .map(str::to_string)
+        .ok_or_else(|| PackageError::InvalidStoreEntry(name.to_string()))
 }
 
 fn write_archive_file(
@@ -379,9 +476,22 @@ fn read_archive(
 
 fn write_installed_package(
     staging: &Path,
+    archive: &Path,
     package: &PackageArchive,
     files: &BTreeMap<String, Vec<u8>>,
 ) -> Result<(), PackageError> {
+    let stored_archive = staging.join(ARCHIVE_PATH);
+    fs::copy(archive, &stored_archive).map_err(|source| PackageError::Io {
+        path: stored_archive.clone(),
+        source,
+    })?;
+    let stored = PackageArchive::verify(&stored_archive)?;
+    if stored.archive_sha256 != package.archive_sha256 {
+        return Err(PackageError::StoreDigestMismatch {
+            expected: package.archive_sha256.clone(),
+            actual: stored.archive_sha256,
+        });
+    }
     let manifest = render_manifest(&package.manifest)?;
     write_package_file(staging, MANIFEST_PATH, manifest.as_bytes())?;
     for (path, content) in files {
@@ -392,6 +502,86 @@ fn write_installed_package(
         CHECKSUMS_PATH,
         render_checksums(&package.files).as_bytes(),
     )
+}
+
+fn read_installed_package(
+    path: &Path,
+    digest_name: &str,
+    audit: bool,
+) -> Result<PackageArchive, PackageError> {
+    let (package, expected) = read_archive(&path.join(ARCHIVE_PATH), true)?;
+    if package.archive_sha256 != digest_name {
+        return Err(PackageError::StoreDigestMismatch {
+            expected: digest_name.to_string(),
+            actual: package.archive_sha256,
+        });
+    }
+    if !audit {
+        return Ok(package);
+    }
+    let declared = expected
+        .iter()
+        .map(|(path, content)| (path.clone(), digest(content)))
+        .collect::<BTreeMap<_, _>>();
+    for (relative, _) in installed_data_files(path)? {
+        if !declared.contains_key(&relative) {
+            return Err(PackageError::MissingChecksum(relative));
+        }
+    }
+    let mut files = Vec::new();
+    for (relative, expected) in &declared {
+        let file = path.join(relative);
+        let metadata = fs::symlink_metadata(&file).map_err(|source| PackageError::Io {
+            path: file.clone(),
+            source,
+        })?;
+        if !metadata.file_type().is_file() {
+            return Err(PackageError::UnsupportedEntry(relative.clone()));
+        }
+        if metadata.len() > MAX_FILE_BYTES {
+            return Err(PackageError::FileTooLarge {
+                path: relative.clone(),
+                bytes: metadata.len(),
+            });
+        }
+        let content = fs::read(&file).map_err(|source| PackageError::Io { path: file, source })?;
+        let actual = digest(&content);
+        if &actual != expected {
+            return Err(PackageError::ChecksumMismatch {
+                path: relative.clone(),
+                expected: expected.clone(),
+                actual,
+            });
+        }
+        files.push(PackageFile {
+            path: relative.clone(),
+            sha256: expected.clone(),
+            bytes: content.len() as u64,
+        });
+    }
+    Ok(PackageArchive { files, ..package })
+}
+
+fn installed_data_files(root: &Path) -> Result<Vec<(String, Vec<u8>)>, PackageError> {
+    let mut paths = Vec::new();
+    collect_files(root, root, &mut paths)?;
+    let mut files = Vec::new();
+    for path in paths {
+        let relative = path_to_string(path.strip_prefix(root).expect("descendant path"))?;
+        if matches!(
+            relative.as_str(),
+            MANIFEST_PATH | CHECKSUMS_PATH | ARCHIVE_PATH
+        ) {
+            continue;
+        }
+        data_path(&relative)?;
+        let content = fs::read(&path).map_err(|source| PackageError::Io {
+            path: path.clone(),
+            source,
+        })?;
+        files.push((relative, content));
+    }
+    Ok(files)
 }
 
 fn write_package_file(root: &Path, path: &str, content: &[u8]) -> Result<(), PackageError> {
@@ -841,6 +1031,49 @@ mod tests {
             Err(PackageError::ChecksumMismatch { .. })
         ));
         assert!(!deployment.path().join("knowledge/packages").exists());
+    }
+
+    #[test]
+    fn audit_detects_tampered_installed_content() {
+        let source = source();
+        let output = tempfile::tempdir().expect("temporary package output");
+        let deployment = tempfile::tempdir().expect("temporary deployment");
+        let archive = output.path().join("package.tar.zst");
+        let package = PackageArchive::build(source.path(), &archive).expect("build package");
+        PackageArchive::install(&archive, deployment.path()).expect("install package");
+        let content = deployment
+            .path()
+            .join("knowledge/packages")
+            .join(format!("sha256-{}", package.archive_sha256))
+            .join("artefacts/archetypes/openEHR-EHR-CLUSTER.example.v1.adl");
+        fs::write(&content, "tampered\n").expect("tamper installed content");
+
+        assert!(matches!(
+            PackageArchive::audit_installed(deployment.path()),
+            Err(PackageError::ChecksumMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn audit_detects_tampered_archive_and_undeclared_material() {
+        let source = source();
+        let output = tempfile::tempdir().expect("temporary package output");
+        let deployment = tempfile::tempdir().expect("temporary deployment");
+        let archive = output.path().join("package.tar.zst");
+        let package = PackageArchive::build(source.path(), &archive).expect("build package");
+        PackageArchive::install(&archive, deployment.path()).expect("install package");
+        let store = deployment
+            .path()
+            .join("knowledge/packages")
+            .join(format!("sha256-{}", package.archive_sha256));
+        fs::write(store.join("artefacts/extra.txt"), "unexpected\n").expect("add material");
+        assert!(matches!(
+            PackageArchive::audit_installed(deployment.path()),
+            Err(PackageError::MissingChecksum(path)) if path == "artefacts/extra.txt"
+        ));
+        fs::remove_file(store.join("artefacts/extra.txt")).expect("remove material");
+        fs::write(store.join(ARCHIVE_PATH), "tampered\n").expect("tamper stored archive");
+        assert!(PackageArchive::audit_installed(deployment.path()).is_err());
     }
 
     fn write_archive(path: &Path, files: &[(&str, &[u8])]) {

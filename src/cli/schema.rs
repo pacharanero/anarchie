@@ -146,5 +146,39 @@ pub(crate) fn pack(format: Format, command: super::PackCommand) -> Result<()> {
                 println!("SHA-256: {}", installed.package.archive_sha256);
             })
         }
+        super::PackCommand::Installed => {
+            let deployment = open_deployment()?;
+            let packages = crate::knowledge::PackageArchive::list_installed(deployment.root())
+                .context("listing installed packages")?;
+            emit(format, &serde_json::to_value(&packages)?, || {
+                if packages.is_empty() {
+                    println!("Installed packages: none");
+                } else {
+                    println!("Installed packages:");
+                    for package in &packages {
+                        println!(
+                            "  - {}@{} ({})",
+                            package.package.manifest.name,
+                            package.package.manifest.version,
+                            package.digest
+                        );
+                    }
+                }
+            })
+        }
+        super::PackCommand::Audit => {
+            let deployment = open_deployment()?;
+            let packages = crate::knowledge::PackageArchive::audit_installed(deployment.root())
+                .context("auditing installed packages")?;
+            emit(format, &serde_json::to_value(&packages)?, || {
+                println!("Verified {} installed package(s)", packages.len());
+                for package in &packages {
+                    println!(
+                        "  - {}@{}",
+                        package.package.manifest.name, package.package.manifest.version
+                    );
+                }
+            })
+        }
     }
 }
