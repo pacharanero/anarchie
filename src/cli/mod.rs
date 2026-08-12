@@ -227,6 +227,38 @@ pub(crate) enum KnowledgeCommand {
         /// Path to a CKM mirror checkout containing local/ or remote/.
         checkout: PathBuf,
     },
+    /// Resolve knowledge.toml against a CKM checkout and write knowledge.lock.
+    Resolve {
+        /// Path to a CKM mirror checkout containing local/ or remote/.
+        checkout: PathBuf,
+        /// Knowledge manifest expressing source selection and policy.
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+        /// Generated deterministic lock file.
+        #[arg(long)]
+        lock: Option<PathBuf>,
+    },
+    /// Explain why an artefact is included, excluded, or unresolved.
+    Why {
+        /// Artefact identifier to explain.
+        artefact_id: String,
+        /// Path to a CKM mirror checkout containing local/ or remote/.
+        checkout: PathBuf,
+        /// Knowledge manifest expressing source selection and policy.
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+    },
+    /// Report whether the deployment knowledge lock matches its manifest and source.
+    Status {
+        /// Path to a CKM mirror checkout containing local/ or remote/.
+        checkout: PathBuf,
+        /// Knowledge manifest. Defaults to the containing deployment's knowledge.toml.
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+        /// Generated lock. Defaults to the containing deployment's knowledge.lock.
+        #[arg(long)]
+        lock: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]

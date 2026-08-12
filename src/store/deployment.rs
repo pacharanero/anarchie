@@ -143,6 +143,10 @@ impl Deployment {
 
         let toml = toml::to_string_pretty(&config)?;
         write_file(&config_path, &toml)?;
+        let knowledge = crate::knowledge::KnowledgeManifest::deployment_default()
+            .to_toml()
+            .map_err(|error| StoreError::Config(error.to_string()))?;
+        write_file(&root.join("knowledge.toml"), &knowledge)?;
         write_file(
             &root.join("templates").join("index.json"),
             "{\n  \"templates\": []\n}\n",

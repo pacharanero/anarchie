@@ -74,6 +74,8 @@ Store integrity checking, and sets of Operational Templates installable as a uni
 - `anarchie pack add` - install a bundled pack (e.g. `ips-core`) by name or from a local directory.
 - `anarchie pack list` - list the bundled packs available to install.
 - [`anarchie knowledge inventory`](../commands/knowledge.md) - deterministically inventory a local CKM mirror checkout, including provenance, licences, dependencies, and parse limitations.
+- [`anarchie knowledge resolve`](../commands/knowledge.md) - apply source policy and hard-dependency closure to produce deterministic `knowledge.lock`; explain decisions with `anarchie knowledge why`.
+- [`anarchie knowledge status`](../commands/knowledge.md) - report whether the deployment lock is unresolved, current, or stale against its manifest and source checkout.
 
 ## :material-hammer-wrench: Designed and planned
 

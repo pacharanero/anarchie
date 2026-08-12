@@ -21,7 +21,7 @@ The project reports conformance by dimension:
 | AQL semantics | Result meaning over shared datasets | Twenty-three EHRbase differential cases | Multiple Compositions/EHRs, nested containment, functions, temporal/version queries |
 | REST API | Operations, methods, headers, statuses, media types, preconditions | Native integration tests | Endpoint-by-endpoint differential suite against a reference CDR |
 | Renderer formats | Canonical JSON/XML, FLAT, STRUCTURED, Web Template transformations | Canonical JSON only | Round-trip corpora and reference renderer comparison |
-| Knowledge packages | Resolution, provenance, reproducibility, safe installation | Starter pack tests | Manifest/lock suite, CKM snapshot closure, reproducible package builds |
+| Knowledge packages | Resolution, provenance, reproducibility, safe installation | Starter pack tests and `knowledge-package-format-1` source-resolution profile | CKM snapshot closure, reproducible package builds, archive installation |
 | Terminology | Structural bindings and optional external validation policy | Structural code checks | Backend contract and licensed value-set evidence |
 
 The matrix is the basis for release notes and machine-readable conformance reports. A green row means conformance to its declared subset, not necessarily complete implementation of every upstream feature.
@@ -190,7 +190,7 @@ Legend: `[x]` done, `[~]` partial, `[ ]` not started.
 - [~] **C5 - EHRbase AQL semantics.** Twenty-three cases compare shared query results; add multi-EHR datasets, nested containment, functions, temporal/version queries, and explicit known differences.
 - [ ] **C6 - REST differential.** Build an operation/header/status/media-type matrix and execute the same lifecycle against anarchie and pinned EHRbase.
 - [ ] **C7 - Template and renderer conformance.** Add ADL 1.4 ingestion, OPT generation, Web Template, FLAT, STRUCTURED, canonical XML, and real-client round trips.
-- [ ] **C8 - Knowledge-package conformance.** Test deterministic resolution, lock reproduction, malicious archives, dependency failures, updates, rollback, provenance, and licence gates.
+- [~] **C8 - Knowledge-package conformance.** `knowledge-package-format-1` covers deterministic source-policy resolution, lock reproduction, failed-lock preservation, dependency and policy failures, provenance, and deployment freshness. Malicious archives, installation, updates, rollback, and package-level licence gates remain with K4/K9/K10.
 - [ ] **C9 - Terminology contract.** Define structural-only and backend-enabled profiles; compare permitted-code/value-set behaviour without bundling licensed terminology content.
 - [ ] **C10 - Conformance report.** Generate per-release JSON and human summaries from all dimension harnesses.
 - [ ] **C11 - External corpus contribution.** Publish reusable cases or extract the corpus when a second implementation commits to consuming it.

@@ -29,6 +29,7 @@ path = [
   "**/.gitignore",
   "my-cdr/**",
   "tests/fixtures/**",
+  "tests/conformance/**",
   "tests/aql-conformance/**",
   "tests/ehrbase/**",
   "tests/archie/**",

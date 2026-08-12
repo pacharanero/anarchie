@@ -16,3 +16,6 @@ __pycache__/
 
 # Local scratch CDR deployments used for manual testing
 /my-cdr
+
+# Local-only work digests, recordings, and other private material
+/.private

@@ -32,6 +32,7 @@ fn init_creates_the_expected_skeleton() {
     let deployment = Deployment::init(tmp.path(), DeploymentConfig::new("anarchie.test")).unwrap();
 
     assert!(tmp.path().join("anarchie.toml").exists());
+    assert!(tmp.path().join("knowledge.toml").exists());
     assert!(tmp.path().join("templates").join("index.json").exists());
     assert!(tmp.path().join("index").join(".gitignore").exists());
     assert!(tmp.path().join("ehrs").is_dir());

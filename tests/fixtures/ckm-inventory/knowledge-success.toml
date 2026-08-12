@@ -1,0 +1,18 @@
+version = 1
+
+[knowledge]
+name = "synthetic-clinical-knowledge"
+
+[source]
+origins = ["local"]
+
+[policy]
+allowed-lifecycle-states = ["published", "in_development"]
+allowed-licences = ["CC-BY-SA-3.0", "CC-BY-SA-4.0"]
+allow-missing-hard-dependencies = true
+
+[languages]
+include = ["en"]
+
+[artefacts]
+include = ["openEHR-EHR-CLUSTER.child.v1"]

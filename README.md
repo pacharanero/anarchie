@@ -67,6 +67,7 @@ anarchie init [--minimal]                  scaffold a CDR (seeds IPS-aligned sta
 anarchie template add <opt.json>           register an Operational Template (the schema)
 anarchie pack add <name|dir>               install an archetype pack (e.g. ips-core)
 anarchie knowledge inventory <checkout>    inventory a CKM mirror checkout without modifying it
+anarchie knowledge resolve <checkout>      resolve knowledge.toml into deterministic knowledge.lock
 
 # the clinical record
 anarchie ehr new                           create a patient record (its own git repo)

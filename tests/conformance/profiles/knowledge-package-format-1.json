@@ -1,0 +1,23 @@
+{
+  "id": "knowledge-package-format-1",
+  "dimension": "knowledge-packages",
+  "contract": "Version 1 knowledge manifests resolve deterministic source policy and hard-dependency closure into locks with manifest, source, and inventory digests.",
+  "runtime_dependencies": [],
+  "evidence": [
+    "tests/knowledge-inventory.rs",
+    "tests/fixtures/ckm-inventory/knowledge-success.toml",
+    "tests/fixtures/ckm-inventory/knowledge-failure.toml"
+  ],
+  "cases": [
+    "deterministic-resolution",
+    "failed-lock-preservation",
+    "major-version-mismatch",
+    "duplicate-artifact-id",
+    "origin-excluded-dependency",
+    "deployment-lock-freshness"
+  ],
+  "limitations": [
+    "Registry and package-version resolution are not implemented.",
+    "Package archives, installation, rollback, and offline caches are not implemented."
+  ]
+}
