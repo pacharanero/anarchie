@@ -8,6 +8,7 @@
 
 mod inventory;
 mod package;
+mod publisher;
 mod resolution;
 
 pub use inventory::{
@@ -15,6 +16,7 @@ pub use inventory::{
     InventorySummary, SourceEvidence,
 };
 pub use package::{InstalledPackage, PackageArchive, PackageError, PackageFile, PackageManifest};
+pub use publisher::{build_international_package, PublicationError, PublicationReport};
 pub use resolution::{
     ArtefactSelection, DecisionReason, KnowledgeDeclaration, KnowledgeLock, KnowledgeManifest,
     KnowledgeStatus, KnowledgeStatusState, LanguagePolicy, LockedArtefact, LockedKnowledge,

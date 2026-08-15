@@ -225,6 +225,19 @@ pub(crate) enum PackCommand {
         /// Destination .tar.zst archive path.
         archive: PathBuf,
     },
+    /// Build a closed, policy-resolved International CKM source package.
+    Ckm {
+        /// Pinned CKM mirror checkout containing local/ or remote/.
+        checkout: PathBuf,
+        /// Knowledge manifest defining accepted source artefacts.
+        #[arg(long)]
+        manifest: PathBuf,
+        /// Immutable package release version chosen by the publisher.
+        #[arg(long)]
+        version: String,
+        /// Destination .tar.zst archive path.
+        archive: PathBuf,
+    },
     /// Inspect a package archive without extracting it.
     Inspect {
         /// Path to a .tar.zst package archive.

@@ -240,6 +240,31 @@ fn package_build_inspect_and_verify_round_trip() {
 }
 
 #[test]
+fn package_ckm_builds_a_policy_resolved_source_package() {
+    let output = tempfile::tempdir().expect("temporary package output");
+    let archive = output.path().join("ckm.tar.zst");
+    let checkout = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/ckm-inventory");
+    let manifest = output.path().join("knowledge.toml");
+    std::fs::write(
+        &manifest,
+        "version = 1\n\n[knowledge]\nname = \"test\"\n\n[source]\norigins = [\"local\"]\n\n[artefacts]\ninclude = [\"openEHR-EHR-CLUSTER.parent.v1\"]\n",
+    )
+    .expect("write closed manifest");
+
+    anarchie()
+        .args(["pack", "ckm"])
+        .arg(checkout)
+        .args(["--manifest"])
+        .arg(manifest)
+        .args(["--version", "2026.8.1"])
+        .arg(&archive)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Included artefacts: 1"));
+    assert!(archive.exists());
+}
+
+#[test]
 fn commit_lifecycle_log_cat_and_fsck() {
     let dir = init_deployment();
 

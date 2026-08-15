@@ -4,8 +4,9 @@
 use std::path::PathBuf;
 
 use anarchie::knowledge::{
-    ArtifactKind, DecisionReason, DependencyIssueKind, Inventory, KnowledgeLock, KnowledgeManifest,
-    KnowledgeStatus, KnowledgeStatusState, ResolutionIssueKind,
+    build_international_package, ArtifactKind, DecisionReason, DependencyIssueKind, Inventory,
+    KnowledgeLock, KnowledgeManifest, KnowledgeStatus, KnowledgeStatusState, PublicationError,
+    ResolutionIssueKind,
 };
 use assert_cmd::Command;
 use predicates::prelude::*;
@@ -162,6 +163,57 @@ fn resolves_policy_and_hard_dependency_closure_deterministically() {
         first.lock.to_toml().expect("render lock"),
         second.lock.to_toml().expect("render lock")
     );
+}
+
+#[test]
+fn publishes_a_deterministic_closed_ckm_source_package_with_evidence() {
+    let output = tempfile::tempdir().expect("temporary package output");
+    let first_archive = output.path().join("first.tar.zst");
+    let second_archive = output.path().join("second.tar.zst");
+    let mut manifest = KnowledgeManifest::from_path(&manifest("knowledge-success.toml"))
+        .expect("knowledge manifest");
+    manifest.artefacts.include = vec!["openEHR-EHR-CLUSTER.parent.v1".to_string()];
+    manifest.policy.allow_missing_hard_dependencies = false;
+
+    let first = build_international_package(&fixture(), &manifest, "2026.8.1", &first_archive)
+        .expect("publish package");
+    let second = build_international_package(&fixture(), &manifest, "2026.8.1", &second_archive)
+        .expect("publish package again");
+
+    assert_eq!(first, second);
+    assert_eq!(first.included_artefacts, 1);
+    assert_eq!(first.excluded_artefacts, 3);
+    assert_eq!(first.allowed_issues, 0);
+    assert_eq!(
+        std::fs::read(&first_archive).expect("read first archive"),
+        std::fs::read(&second_archive).expect("read second archive")
+    );
+    let package =
+        anarchie::knowledge::PackageArchive::verify(&first_archive).expect("verify package");
+    assert_eq!(package.manifest.name, "ckm-international");
+    assert_eq!(package.manifest.version, "2026.8.1");
+    assert!(package
+        .files
+        .iter()
+        .any(|file| file.path == "provenance/knowledge.lock"));
+    assert!(package
+        .files
+        .iter()
+        .any(|file| file.path == "provenance/inclusion-report.json"));
+}
+
+#[test]
+fn refuses_to_publish_a_ckm_package_with_blocking_resolution_issues() {
+    let output = tempfile::tempdir().expect("temporary package output");
+    let archive = output.path().join("blocked.tar.zst");
+    let manifest = KnowledgeManifest::from_path(&manifest("knowledge-failure.toml"))
+        .expect("knowledge manifest");
+
+    assert!(matches!(
+        build_international_package(&fixture(), &manifest, "2026.8.1", &archive),
+        Err(PublicationError::ResolutionBlocked(_))
+    ));
+    assert!(!archive.exists());
 }
 
 #[test]

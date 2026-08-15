@@ -103,6 +103,28 @@ pub(crate) fn pack(format: Format, command: super::PackCommand) -> Result<()> {
                 println!("SHA-256: {}", package.archive_sha256);
             })
         }
+        super::PackCommand::Ckm {
+            checkout,
+            manifest,
+            version,
+            archive,
+        } => {
+            let manifest = crate::knowledge::KnowledgeManifest::from_path(&manifest)
+                .with_context(|| format!("loading knowledge manifest {}", manifest.display()))?;
+            let report = crate::knowledge::build_international_package(
+                &checkout, &manifest, &version, &archive,
+            )
+            .with_context(|| {
+                format!("building International package from {}", checkout.display())
+            })?;
+            emit(format, &serde_json::to_value(&report)?, || {
+                println!("Built International package: {}", archive.display());
+                println!("Package: ckm-international@{version}");
+                println!("Included artefacts: {}", report.included_artefacts);
+                println!("Excluded artefacts: {}", report.excluded_artefacts);
+                println!("SHA-256: {}", report.package.archive_sha256);
+            })
+        }
         super::PackCommand::Inspect { archive } => {
             let package = crate::knowledge::PackageArchive::inspect(&archive)
                 .with_context(|| format!("inspecting package {}", archive.display()))?;

@@ -10,6 +10,7 @@ can register in one step. A pack is a convenient bundle of the same
 anarchie pack add <name|dir>
 anarchie pack list
 anarchie pack build <source> <archive.tar.zst>
+anarchie pack ckm <checkout> --manifest <knowledge.toml> --version <release> <archive.tar.zst>
 anarchie pack inspect <archive.tar.zst>
 anarchie pack verify <archive.tar.zst>
 anarchie pack install <archive.tar.zst>
@@ -96,6 +97,12 @@ Installing the same archive again is idempotent.
 reverifies the retained archive, then rehashes every installed package file against
 its archive checksums. It is read-only and fails if the archive or package material
 has been altered.
+
+## anarchie pack ckm
+
+`pack ckm` publishes a deterministic `ckm-international` source package from a pinned CKM mirror checkout. The supplied manifest must resolve with a closed hard-dependency graph: allowed missing dependencies are acceptable for exploratory resolution but never for publication. The publisher copies precisely the locked artefacts, verifies each source digest again, and includes the source evidence, generated lock, full resolution, and machine-readable inclusion report under `provenance/`.
+
+The publisher requires an explicit package release version because a CKM revision is source evidence, not a package-release version. It does not embed the resulting package or activate its contents; those release and runtime-integration steps remain future work.
 
 !!! note "Build and verify only"
     Content-addressed package material is installed and auditable, but it is not
