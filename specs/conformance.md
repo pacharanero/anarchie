@@ -188,12 +188,13 @@ Legend: `[x]` done, `[~]` partial, `[ ]` not started.
 - [~] **C3 - Archie validation differential.** Six root Composition verdicts run against pinned Archie and have already exposed one native validation defect; nested repositories and wider constraint classes remain open.
 - [~] **C4 - AQL syntax differential.** The supported corpus is checked against the pinned official grammar; expand positive and negative cases with feature ownership.
 - [~] **C5 - EHRbase AQL semantics.** Twenty-three cases compare shared query results; add multi-EHR datasets, nested containment, functions, temporal/version queries, and explicit known differences.
-- [ ] **C6 - REST differential.** Build an operation/header/status/media-type matrix and execute the same lifecycle against anarchie and pinned EHRbase.
-- [ ] **C7 - Template and renderer conformance.** Add ADL 1.4 ingestion, OPT generation, Web Template, FLAT, STRUCTURED, canonical XML, and real-client round trips.
+- [ ] **C6 - REST differential.** Build an operation/header/status/media-type matrix and execute the same lifecycle against anarchie and pinned EHRbase. Publish a named real-client profile for openEHR Explorer with captured request/response fixtures; it is compatibility evidence, not a normative oracle.
+- [ ] **C7 - Template and renderer conformance.** Add ADL 1.4 ingestion, OPT generation, Web Template, FLAT, STRUCTURED, canonical XML, and real-client round trips. The initial Explorer journey is browse, inspect, and query; form submission follows FLAT write conversion.
 - [~] **C8 - Knowledge-package conformance.** `knowledge-package-format-1` covers deterministic source-policy resolution, lock reproduction, failed-lock preservation, dependency and policy failures, provenance, and deployment freshness. Malicious archives, installation, updates, rollback, and package-level licence gates remain with K4/K9/K10.
 - [ ] **C9 - Terminology contract.** Define structural-only and backend-enabled profiles; compare permitted-code/value-set behaviour without bundling licensed terminology content.
 - [ ] **C10 - Conformance report.** Generate per-release JSON and human summaries from all dimension harnesses.
 - [ ] **C11 - External corpus contribution.** Publish reusable cases or extract the corpus when a second implementation commits to consuming it.
+- [ ] **C12 - Veredictum independent run.** Run a released [Veredictum](https://veredictum.eu/) catalogue against a disposable anarchie deployment through a version-pinned IXIT configuration, retaining the exchanges and verdict as test-time conformance evidence. Attribute every failure against the cited specification before changing anarchie, the catalogue, or the runner; Veredictum is never a shipped dependency or a certification claim.
 
 ## Completion Criteria
 
