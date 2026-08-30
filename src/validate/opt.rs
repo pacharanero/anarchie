@@ -72,17 +72,18 @@ fn walk_attribute(node: &Value, attr: &CAttribute, path: &str, report: &mut Vali
     let child_value = node.get(&attr.rm_attribute);
     let rm_children = as_children(child_value);
 
-    if attr.existence.is_mandatory() && rm_children.is_empty() {
+    let present = (!rm_children.is_empty()) as u32;
+    if !attr.existence.contains(present) {
         report.error(
             &attr_path,
             "OPT:existence",
             format!(
-                "mandatory attribute \"{}\" (existence {}) is absent",
+                "attribute \"{}\" is {}, outside existence {}",
                 attr.rm_attribute,
-                attr.existence.display()
+                if present == 0 { "absent" } else { "present" },
+                attr.existence.display(),
             ),
         );
-        return;
     }
 
     if let Some(cardinality) = &attr.cardinality {
@@ -132,12 +133,31 @@ fn walk_attribute(node: &Value, attr: &CAttribute, path: &str, report: &mut Vali
             }
         }
     }
+
+    for child in rm_children {
+        if let Some(node_id) = node_id_of(child) {
+            let permitted = attr.children.iter().any(|constraint| {
+                matches!(constraint, CObject::Complex(complex) if complex.node_id == node_id)
+            });
+            if !permitted {
+                report.error(
+                    format!("{attr_path}[{node_id}]"),
+                    "OPT:node",
+                    format!(
+                        "node \"{node_id}\" is not permitted in attribute \"{}\"",
+                        attr.rm_attribute
+                    ),
+                );
+            }
+        }
+    }
 }
 
 fn apply_leaf(value: &Value, constraint: &CObject, path: &str, report: &mut ValidationReport) {
     match constraint {
         CObject::DvQuantity(cq) => {
             if value.get("_type").and_then(Value::as_str) != Some("DV_QUANTITY") {
+                report.error(path, "C_DV_QUANTITY", "expected a DV_QUANTITY value");
                 return;
             }
             let units = value.get("units").and_then(Value::as_str).unwrap_or("");
@@ -169,37 +189,54 @@ fn apply_leaf(value: &Value, constraint: &CObject, path: &str, report: &mut Vali
                             );
                         }
                     }
+                    if let (Some(range), Some(precision)) = (
+                        &item.precision,
+                        value.get("precision").and_then(Value::as_i64),
+                    ) {
+                        if !range.contains(precision) {
+                            report.error(
+                                format!("{path}/precision"),
+                                "C_DV_QUANTITY",
+                                format!(
+                                    "precision {precision} outside permitted range for units \"{units}\""
+                                ),
+                            );
+                        }
+                    }
                 }
             }
         }
         CObject::CodePhrase(cc) => {
             let code = coded_value(value);
-            if let Some((terminology, code_string)) = code {
-                if let Some(expected) = &cc.terminology {
-                    if expected != terminology {
-                        report.error(
-                            path,
-                            "C_CODE_PHRASE",
-                            format!(
-                                "terminology \"{terminology}\" does not match required \"{expected}\""
-                            ),
-                        );
-                    }
-                }
-                if !cc.codes.is_empty() && !cc.codes.iter().any(|c| c == code_string) {
+            let Some((terminology, code_string)) = code else {
+                report.error(path, "C_CODE_PHRASE", "expected a coded value");
+                return;
+            };
+            if let Some(expected) = &cc.terminology {
+                if expected != terminology {
                     report.error(
                         path,
                         "C_CODE_PHRASE",
                         format!(
-                            "code \"{code_string}\" not in permitted set: {}",
-                            cc.codes.join(", ")
+                            "terminology \"{terminology}\" does not match required \"{expected}\""
                         ),
                     );
                 }
             }
+            if !cc.codes.is_empty() && !cc.codes.iter().any(|c| c == code_string) {
+                report.error(
+                    path,
+                    "C_CODE_PHRASE",
+                    format!(
+                        "code \"{code_string}\" not in permitted set: {}",
+                        cc.codes.join(", ")
+                    ),
+                );
+            }
         }
         CObject::String(cs) => {
             if value.get("_type").and_then(Value::as_str) != Some("DV_TEXT") {
+                report.error(path, "C_STRING", "expected a DV_TEXT value");
                 return;
             }
             let text = value.get("value").and_then(Value::as_str).unwrap_or("");
@@ -216,6 +253,7 @@ fn apply_leaf(value: &Value, constraint: &CObject, path: &str, report: &mut Vali
         }
         CObject::DvOrdinal(co) => {
             if value.get("_type").and_then(Value::as_str) != Some("DV_ORDINAL") {
+                report.error(path, "C_DV_ORDINAL", "expected a DV_ORDINAL value");
                 return;
             }
             if let Some(v) = value.get("value").and_then(Value::as_i64) {
@@ -270,6 +308,9 @@ fn node_id_of(value: &Value) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::aom::{
+        CAttribute, CComplexObject, CDvQuantity, CQuantityItem, Interval, MultiplicityInterval,
+    };
     use serde_json::json;
 
     #[test]
@@ -283,5 +324,93 @@ mod tests {
         });
 
         assert_eq!(coded_value(&value), Some(("openehr", "433")));
+    }
+
+    #[test]
+    fn quantity_precision_constraint_is_enforced() {
+        let constraint = CObject::DvQuantity(CDvQuantity {
+            property: None,
+            list: vec![CQuantityItem {
+                units: "mm[Hg]".to_string(),
+                magnitude: None,
+                precision: Some(Interval {
+                    lower: Some(0),
+                    upper: Some(1),
+                    lower_included: true,
+                    upper_included: true,
+                }),
+            }],
+        });
+        let mut report = ValidationReport::new();
+
+        apply_leaf(
+            &json!({
+                "_type": "DV_QUANTITY",
+                "magnitude": 120.0,
+                "units": "mm[Hg]",
+                "precision": 2,
+            }),
+            &constraint,
+            "/value",
+            &mut report,
+        );
+
+        assert_eq!(report.error_count(), 1);
+        assert_eq!(report.violations[0].rm_path, "/value/precision");
+    }
+
+    #[test]
+    fn prohibited_attribute_is_rejected_when_present() {
+        let attribute = CAttribute {
+            rm_attribute: "protocol".to_string(),
+            existence: MultiplicityInterval {
+                lower: 0,
+                upper: Some(0),
+            },
+            cardinality: None,
+            children: Vec::new(),
+        };
+        let mut report = ValidationReport::new();
+
+        walk_attribute(
+            &json!({ "protocol": { "_type": "ITEM_TREE" } }),
+            &attribute,
+            "",
+            &mut report,
+        );
+
+        assert_eq!(report.error_count(), 1);
+        assert_eq!(report.violations[0].constraint, "OPT:existence");
+    }
+
+    #[test]
+    fn undeclared_complex_node_is_rejected() {
+        let attribute = CAttribute {
+            rm_attribute: "items".to_string(),
+            existence: MultiplicityInterval::ANY,
+            cardinality: None,
+            children: vec![CObject::Complex(CComplexObject {
+                rm_type: "ELEMENT".to_string(),
+                node_id: "at0001".to_string(),
+                occurrences: MultiplicityInterval::ANY,
+                attributes: Vec::new(),
+            })],
+        };
+        let mut report = ValidationReport::new();
+
+        walk_attribute(
+            &json!({
+                "items": [{
+                    "_type": "ELEMENT",
+                    "archetype_node_id": "at9999"
+                }]
+            }),
+            &attribute,
+            "",
+            &mut report,
+        );
+
+        assert_eq!(report.error_count(), 1);
+        assert_eq!(report.violations[0].constraint, "OPT:node");
     }
 }

@@ -47,15 +47,18 @@ vital_signs_encounter.v1
 
 Each template is stored inside the deployment under `templates/` and indexed.
 Any Composition whose `template_id` is one of these is validated against it
-automatically. To add your *own* Operational Template, register its
-anarchie-OPT JSON with `anarchie template add <your-template>.opt.json`; it
-joins the list the same way.
+automatically. To add your *own* Operational Template, register anarchie's
+native OPT JSON or a supported legacy ADL 1.4 `.opt` XML export with
+`anarchie template add <your-template>.opt.json` or
+`anarchie template add <your-template>.opt`; it joins the list the same way.
 
-!!! note "anarchie's native template form"
+!!! note "Native template form and XML input"
     The file above is anarchie's own flattened-OPT JSON: a `template_id`, a root
     archetype `concept`, and an AOM `definition` tree of `C_COMPLEX_OBJECT`
-    nodes, attributes, and leaf constraints. Importing `.opt` XML from Archetype
-    Designer is planned; for now the JSON form is authored or generated directly.
+    nodes, attributes, and leaf constraints. A supported legacy ADL 1.4 XML
+    subset is lowered into this form on registration; native JSON remains the
+    stored representation. Unsupported XML constraints fail explicitly rather
+    than being silently discarded.
 
 ## Validating without committing
 

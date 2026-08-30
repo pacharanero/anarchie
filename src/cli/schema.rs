@@ -44,10 +44,18 @@ pub(crate) fn template(format: Format, command: super::TemplateCommand) -> Resul
     let deployment = open_deployment()?;
     match command {
         super::TemplateCommand::Add { file } => {
-            let json_text = std::fs::read_to_string(&file)
+            let template_text = std::fs::read_to_string(&file)
                 .with_context(|| format!("reading {}", file.display()))?;
-            let opt = Opt::from_json(&json_text)
-                .with_context(|| format!("parsing {} as an anarchie OPT", file.display()))?;
+            let opt = if template_text
+                .trim_start_matches('\u{feff}')
+                .trim_start()
+                .starts_with('<')
+            {
+                Opt::from_xml(&template_text)
+            } else {
+                Opt::from_json(&template_text)
+            }
+            .with_context(|| format!("parsing {} as an Operational Template", file.display()))?;
             let id = deployment
                 .add_template(&opt)
                 .context("registering template")?;

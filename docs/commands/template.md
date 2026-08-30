@@ -13,9 +13,10 @@ anarchie template list
 
 ## anarchie template add
 
-Register an Operational Template. The file is anarchie's native flattened-OPT
-JSON: a `template_id`, a root `concept` archetype id, and an Archetype Object
-Model `definition` tree.
+Register an Operational Template. `anarchie` accepts its native flattened-OPT
+JSON form or a legacy ADL 1.4 `.opt` XML file exported by Archetype Designer or
+the ADL Workbench. XML is lowered into the native form; the deployment stores
+only native JSON.
 
 ```bash
 $ anarchie template add vital_signs_encounter.opt.json
@@ -26,10 +27,14 @@ The template is stored under `templates/<template_id>.opt.json` in the
 deployment and added to the template index. From then on, any Composition whose
 `archetype_details.template_id` matches is validated against it.
 
-!!! note "Native JSON form"
-    Templates are anarchie's own flattened-JSON representation of the AOM.
-    Ingesting `.opt` XML exported from Archetype Designer or the ADL Workbench is
-    planned future work; for now you author or generate the JSON form directly.
+!!! note "Supported XML subset"
+    XML ingestion supports COMPOSITION and archetype-root complex objects,
+    single and multiple attributes, inclusive occurrence/cardinality intervals,
+    `C_DV_QUANTITY` units/magnitude/precision, and `C_CODE_PHRASE` constraints.
+    Quantity property constraints, defaults, rules, slots, ordered/unique
+    cardinality, and other unsupported OPT features fail explicitly rather than
+    weakening validation. The native JSON form stays the durable, inspectable
+    template representation.
 
 ## anarchie template list
 

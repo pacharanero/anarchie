@@ -34,7 +34,7 @@ Already specified in [on-disk-format.md](on-disk-format.md): RM-faithful JSON wi
 
 The canonical XML form is RM-faithful XML, semantically equivalent to canonical JSON. It matters for one unavoidable reason: **Operational Templates are distributed as XML.** Even if `anarchie`'s own native template form is flattened JSON (see [validation.md](validation.md)), ingesting a real `.opt` exported from Archetype Designer or the ADL Workbench means parsing OPT XML. Beyond OPT ingestion, canonical XML on the wire is an optional, later convenience; canonical JSON is the default for everything.
 
-Implementation note: XML (de)serialisation is a feature-gated concern (a `quick-xml`-class dependency), kept out of the core so the base binary stays light.
+Implementation note: legacy OPT XML is parsed with the lightweight, MIT-licensed [`quick-xml`](https://github.com/tafia/quick-xml) 0.41.0 parser (MSRV 1.79, compatible with anarchie's Rust 1.80 MSRV). The parser is a pure format adapter over caller-provided text; it does not add a runtime service or alter the canonical store.
 
 ---
 
@@ -91,8 +91,8 @@ AOM constraint tree  ──►  Web Template (wt.json, cached)
 
 ## Scope and phasing
 
-- **Now (shipped):** canonical JSON on disk and on the wire. The native flattened-JSON template form.
-- **Validation phase:** OPT XML ingestion (parse a real `.opt` into the AOM tree).
+- **Now (shipped):** canonical JSON on disk and on the wire; native flattened-JSON templates; legacy ADL 1.4 OPT XML ingestion for the supported AOM subset. XML is lowered to native JSON before storage.
+- **Validation phase:** broaden OPT XML coverage against externally sourced templates and add the ADL2/OPT2 policy.
 - **Services phase:** Web Template generation on template registration; FLAT and STRUCTURED conversion at the REST boundary; canonical XML content negotiation.
 
 Each conversion is a boundary concern. None of them changes what the store holds: one canonical JSON document per Composition version, byte-stable and git-diffable.

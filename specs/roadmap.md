@@ -18,7 +18,7 @@ The biggest open question is not "does it run" but "is it *correct* against the 
 ### Templates and serialisation
 
 - [~] **Batteries-included knowledge packages.** The seed exists as eight embedded starter templates, default installation, `--minimal`, local-directory packs, attribution, template validation, deterministic CKM source inventory, deployment-aware source-policy resolution into `knowledge.lock`, reproducible verified package archives installed and audited in content-addressed deployment storage, and a closed-graph CKM source-package publisher with provenance evidence. The target is the complete eligible published International CKM archetype library plus a conformance-tested executable template catalogue; embedding, activation/removal/rollback policy, compiled templates, version-safe runtime integration, package registries and updates, and release gates remain. See [knowledge-packages.md](knowledge-packages.md).
-- [ ] **Ingest `.opt` XML** exported from Archetype Designer / the ADL Workbench into the AOM tree, alongside anarchie's native flattened-JSON OPT form ([serialisation-formats.md](serialisation-formats.md)). This is also the durable path for re-generating the bundled templates instead of hand-authoring against at-codes.
+- [~] **Ingest `.opt` XML** exported from Archetype Designer / the ADL Workbench into the AOM tree, alongside anarchie's native flattened-JSON OPT form ([serialisation-formats.md](serialisation-formats.md)). `anarchie template add` now lowers a safe legacy ADL 1.4 subset (complex/archetype-root objects, attributes, inclusive intervals, `C_DV_QUANTITY` units/magnitude/precision, and `C_CODE_PHRASE`) into native JSON and rejects unsupported constraints rather than silently weakening validation. Quantity property constraints, slots/rules/defaults, ordered/unique cardinality, real externally sourced template corpus coverage, the ADL2/OPT2 policy, and re-generating bundled templates remain.
 - [ ] **Renderer formats** - Web Template generation on template registration, and FLAT / STRUCTURED conversion at the REST boundary, which a form renderer expects. A self-contained serialisation workstream; the store and wire format stay canonical JSON.
 - [ ] **OMOP derived view and mappings.** Export canonical, versioned Composition data into an OMOP Common Data Model-compatible analytical view, with explicit terminology mappings and source provenance back to each Composition version. OMOP is an analytics and observational-research projection, never a replacement for the openEHR clinical system of record.
 
@@ -66,9 +66,10 @@ Extends the **Distribution** item above with the remaining house-style check:
 
 - [~] The Archie and EHRbase cross-checks now provide initial golden-vector layers (tracked under **Conformance** above); wider externally sourced validation and REST corpora, machine-readable profiles, renderer/package cases, and release evidence reports remain open. See [conformance.md](conformance.md).
 
-### Library extraction
+### Reusable Rust SDK
 
-- [ ] If the openEHR Reference Model (`rm`, and perhaps `aom` / `validate`) earns external consumers, extract it as a leaf crate (serde-only, no host dependencies) via `git subtree split` so its history travels. Deliberately deferred - the single-crate simplification is the right default until a consumer appears.
+- [~] **SDK boundary.** `rm`, `aom`, `opt`, and `validate` are the host-independent openEHR SDK kernel within the current crate; the CDR is its first consumer and GitEHR's openEHR compatibility is the intended first external consumer. Keep the kernel free of filesystem, git, SQLite, HTTP/MCP, CLI, clock, and global-state dependencies. See [rust-sdk.md](rust-sdk.md).
+- [ ] **Extract and publish SDK crates.** When GitEHR first consumes the kernel, establish a leaf-crate API with named conformance profiles and semver compatibility tests, then extract it with its history via `git subtree split`. Progress from path dependency to a revision-pinned git dependency and finally crates.io; publishing retains the project's current AGPL-3.0-or-later code licence unless a separate licensing decision changes it.
 
 ---
 

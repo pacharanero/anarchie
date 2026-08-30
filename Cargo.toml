@@ -26,6 +26,7 @@ eula = false
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.150", features = ["preserve_order"] }
 thiserror = "2.0.16"
+quick-xml = "0.41.0"
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }
 uuid = { version = "1.23.2", features = ["v4", "serde"] }

@@ -18,6 +18,13 @@ fn fixture() -> PathBuf {
         .join("blood-pressure-composition.json")
 }
 
+fn legacy_template_fixture() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("legacy-vital-signs.opt.xml")
+}
+
 fn anarchie() -> Command {
     Command::cargo_bin("anarchie").expect("the `anarchie` binary builds")
 }
@@ -145,6 +152,50 @@ fn init_seeds_the_ips_starter_templates() {
                 .and(predicate::str::contains("medication_list.v1"))
                 .and(predicate::str::contains("problem_list.v1")),
         );
+}
+
+#[test]
+fn template_add_lowers_legacy_opt_xml_to_native_json() {
+    let dir = init_deployment();
+    anarchie()
+        .current_dir(&dir)
+        .args(["template", "add"])
+        .arg(legacy_template_fixture())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "Registered template legacy_vital_signs.v1",
+        ));
+
+    assert!(dir
+        .path()
+        .join("templates")
+        .join("legacy_vital_signs.v1.opt.json")
+        .is_file());
+}
+
+#[test]
+fn template_add_accepts_bom_prefixed_opt_xml() {
+    let dir = init_deployment();
+    let template = dir.path().join("legacy-vital-signs.opt.xml");
+    std::fs::write(
+        &template,
+        format!(
+            "\u{feff}{}",
+            include_str!("fixtures/legacy-vital-signs.opt.xml")
+        ),
+    )
+    .unwrap();
+
+    anarchie()
+        .current_dir(&dir)
+        .args(["template", "add"])
+        .arg(template)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "Registered template legacy_vital_signs.v1",
+        ));
 }
 
 #[test]
