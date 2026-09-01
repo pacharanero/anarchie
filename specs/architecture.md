@@ -45,7 +45,7 @@ These are inherited from `sct` and adapted for a read-write clinical store.
 
 Each layer consumes the layer below it. **Layer 1 is the stable clinical-data interface.** Everything above Layer 1 is rebuildable from Layer 1 plus Layer 0. Nothing above Layer 1 is authoritative. Layer 0 is resolved and locked schema material: archetypes, Operational Templates, Web Templates, provenance, and the Reference Model. See [knowledge-packages.md](knowledge-packages.md).
 
-The RM, AOM, template model, and validation engine within Layer 0 are also the prospective reusable Rust SDK kernel. They remain pure transformations over caller-provided values, separate from the filesystem/git store and its derived services. The CDR is their first consumer; GitEHR's openEHR compatibility is the intended first external consumer. The extraction and publishing plan is in [rust-sdk.md](rust-sdk.md).
+The RM, AOM, template model, and validation engine within Layer 0 are the host-independent SDK kernel. They remain pure transformations over caller-provided values, separate from the filesystem/git store and its derived services. That kernel is being migrated onto the published FerroEHR `openehr-*` crates rather than extracted as our own; the crates impose no persistence choice, so the file-and-git store is unaffected. The adoption sequence, admission criteria, and risks are in [rust-sdk.md](rust-sdk.md).
 
 Contrast with `sct`, whose centre (Layer 1) is a single immutable NDJSON file because terminology is read-only reference data. `anarchie`'s Layer 1 is a *growing tree of immutable files*, because a CDR accumulates new versions over time. The immutability is per-file, not per-store.
 

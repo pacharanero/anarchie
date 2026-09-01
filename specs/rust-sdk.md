@@ -7,65 +7,88 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 ## Decision
 
-`anarchie` is both a local-first openEHR CDR and the first consumer of a reusable Rust openEHR SDK. The SDK will be published for reuse when it has an external consumer. GitEHR's openEHR compatibility is the intended first such consumer.
+`anarchie` consumes an existing, published Rust openEHR SDK rather than growing and extracting its own. The [FerroEHR](https://github.com/rubentalstra/FerroEHR) `openehr-*` crates are that SDK.
 
-This is a boundary decision, not an immediate repository split. Keeping one crate is the simplest working arrangement while the CDR is the only consumer. New code below the CDR boundary must nevertheless be written so that extracting it does not require a redesign.
+This supersedes the earlier plan to extract `rm`, `aom`, `opt`, and `validate` from this repository as `anarchie-*` leaf crates. That plan was correct when no suitable published SDK existed. One now does, generated from the openEHR BMM and released to crates.io, and it is more complete than anything this project would write by hand. Maintaining a second hand-written Reference Model would be duplicated effort producing a strictly worse artefact.
 
-## SDK contract
+What does not change is the boundary itself. The host-independence rules below were written as constraints on crates this project would publish; they now serve as **admission criteria for a dependency**. A crate that fails them does not enter the kernel.
 
-The SDK owns pure openEHR operations over caller-provided data:
+## What anarchie remains
 
-- Reference Model Rust types and canonical JSON parsing and serialisation.
-- Archetype Object Model constraint types.
-- Operational Template representation and source-format lowering into that representation.
-- RM and template validation, returning structured, addressable violations.
-- Deterministic conversions that require no deployment, filesystem, database, network, clock, or process-global state.
+Adopting the SDK narrows what this project claims to be, and sharpens it.
 
-The SDK does not own:
+`anarchie` is a local-first, file-and-git openEHR CDR. Its original contributions are the immutable canonical-JSON store, git-native versioning, the CLI, the MCP server, the embedded SQLite query path, and the knowledge-package manager. None of those exist in FerroEHR, whose CDR decomposes canonical JSON into mutable PostgreSQL rows and requires a database server.
 
-- deployment layout, filesystem or git transactions, contribution history, or access control;
-- SQLite/DuckDB indexes, AQL persistence, REST, MCP, CLI, or a server runtime;
-- archetype authoring, ADL specialisation, template flattening, or terminology content.
+The two projects therefore share a model layer and diverge entirely at persistence. That is the collaboration: a common SDK, two honest experiments in what to do with it.
 
-The CDR layers remain adapters over this kernel. They provide persistence, versioning, query acceleration, and service delivery, but must not become prerequisites for an application that only needs openEHR representation, canonical serialisation, template validation, or conversion.
+**The SDK crates impose no persistence choice.** They carry no database, network, filesystem, or async-runtime dependency in their runtime graphs; PostgreSQL is confined to FerroEHR's `app/ferroehr`. File-based persistence remains this project's whole point and is unaffected.
 
-## Intended layers
+## Kernel admission criteria
 
-| Layer | Current implementation | Extraction target | Dependency rule |
-|---|---|---|---|
-| RM | `rm` | `anarchie-rm` | `serde`, `serde_json`, and error support only |
-| Constraints | `aom`, `opt` | `anarchie-aom` and template-format adapters | Pure parsing and lowering; no host I/O |
-| Validation | `validate` | `anarchie-validate` | Takes RM values and template constraints; returns SDK-owned reports |
-| CDR adapters | `store`, `query`, `serve`, `cli` | Remain `anarchie` product layers | May depend on the SDK, never the reverse |
+A crate may sit below the CDR boundary only if it is a pure transformation over caller-provided values. It must not depend on the filesystem, git, a database, HTTP or MCP, a CLI, a clock, an async runtime, or process-global state. Feature flags that pull any of those must be switched off, and the resulting build verified, not assumed.
 
-The eventual crate names and exact grouping remain implementation decisions. The essential rule is dependency direction: SDK crates are leaves, and every host depends on them.
+The CDR layers (`store`, `query`, `serve`, `cli`) are adapters above this line. They may depend on the kernel; the kernel may never depend on them.
 
-## GitEHR compatibility
+## Adoption sequence
 
-GitEHR must consume the SDK directly for its openEHR compatibility layer rather than invoking the `anarchie` binary or importing its store. Shared behaviour includes RM representations, canonical JSON, template validation, and the declared conformance profiles. GitEHR's journal/state model and `anarchie`'s CDR filesystem/git model remain separate host concerns.
+Each stage is independently shippable and independently revertable. Nothing later is a prerequisite for anything earlier being useful.
 
-The first integration must add shared positive and negative conformance cases. It must prove that the same canonical Composition parses, serialises byte-stably where the profile guarantees it, and receives equivalent validation results in both products.
+### Stage 1 - AQL parsing (`openehr-query`)
 
-## Extraction and publication trigger
+Replace `src/query/aql/{lexer,ast,parser}.rs` with `openehr-query`, adapting its AST to the existing query plan. The crate is parser-only by design and depends on `logos`, `chumsky`, and `thiserror` alone. `src/query/execute.rs` and `src/query/index.rs` are untouched: FerroEHR's own executor compiles to PostgreSQL SQL and is not a crate, so the embedded SQLite path stays ours.
 
-Extraction begins when GitEHR has a concrete integration needing the SDK. Before then, one crate avoids unnecessary release and dependency management. The migration sequence is:
+This is the lowest-risk stage and it proves the dependency mechanics before anything load-bearing moves. It should land first for that reason as much as for the conformance gain.
 
-1. Move the kernel behind a deliberately documented, semver-versioned API while keeping the CDR as its consumer.
-2. Add independent tests and named conformance profiles covering that API.
-3. Create a leaf crate with no host dependencies and retain history with `git subtree split` when it moves to its own repository.
-4. Let GitEHR consume it by path dependency during co-development, then by revision-pinned git dependency once separated, and finally from crates.io after a release pipeline exists.
+### Stage 2 - Reference Model (`openehr-base`, `openehr-rm`, transitively `openehr-term`)
 
-Publishing a crate does not imply a permissive licence. SDK code remains AGPL-3.0-or-later under the current project policy. A different licence or a dual-licensing model would require a separate, explicit decision.
+Replace `src/rm/` and the type-level parts of `src/validate/rm.rs`. This is the substantial win: a BMM-generated RM, terminology-backed class invariants, and an RM path engine, against roughly 520 lines of hand-written subset.
 
-## Readiness criteria
+**This stage touches the byte-stability invariant and must be gated accordingly.** The SDK emits canonical JSON as `_type`-first in BMM declaration order; `anarchie` currently emits serde field order. Both are deterministic, so byte-stability survives the change, but the bytes differ. That makes it a one-time re-canonicalisation of every stored Composition, requiring a golden-vector diff and a documented store migration. Pretty-printing remains this project's own serializer concern and is orthogonal.
 
-The SDK is ready for its first published release when:
+### Stage 3 - Templates and renderer formats (`openehr-its`)
 
-- its public API is intentionally documented and semver-governed;
-- its crates are leaves with no CDR, filesystem, git, database, HTTP/MCP, CLI, runtime, clock, or global-state dependency;
-- supported RM, template, serialisation, and validation subsets map to named conformance profiles;
-- every public operation has focused positive and negative tests plus shared GitEHR compatibility cases where applicable;
-- the CDR and GitEHR both use the same published API rather than duplicate model or validation logic;
-- the licence and dependency metadata are suitable for publication.
+Retire the hand-rolled legacy OPT XML importer in `src/opt.rs` in favour of the crate's `opt14` model and JSON codec, then take `flat` and `webtemplate` to deliver the **Renderer formats** and **Explorer interoperability** roadmap items without writing them.
 
-Until those criteria are met, `anarchie` must describe the exposed Rust modules as an internal, reusable kernel rather than a complete or stable openEHR SDK.
+Blocked on an upstream change: see [Upstream dependencies](#upstream-dependencies) below.
+
+### Stage 4 - Archetype model (`openehr-am`, `openehr-adl`)
+
+Only when ADL2/OPT2 becomes real work rather than a roadmap line.
+
+### Not adopted
+
+`app/ferroehr` (the PostgreSQL node model) and `app/ferroehr-rest` (bound to a concrete service type with no backend trait seam) are outside the boundary and stay outside it.
+
+## Upstream dependencies
+
+Two limitations block or complicate adoption. Both are ordinary upstream work, and the project's stated posture is to contribute the fix rather than fork or work around it.
+
+- **`openehr-its` has no granular features.** It exposes only `default = ["full"]`, and `full` pulls `axum`, `http`, `moka`, and `jsonschema`. Taking it with `default-features = false` leaves effectively nothing. A non-server consumer that wants the canonical-JSON codec, the `opt14` model, or the FLAT/WebTemplate machinery cannot currently avoid taking an HTTP framework and an async cache. **Stage 3 is blocked on separable features** (for example `json`, `xml`, `opt14`, `flat`, `rest`) and that is the first issue to raise.
+- **The OPT constraint validator is not a crate.** It lives in `app/ferroehr/src/validation/opt/`, roughly 2,500 lines, coupled to the application only through its error type. `anarchie`'s `src/validate/opt.rs` is exactly the second consumer that would justify lifting it into the crate set, and offering to do that work is a well-scoped opening contribution. Until then this project keeps its own template validator.
+
+## Risks accepted
+
+Recorded plainly because they are the reason this is a decision rather than a default.
+
+- **Bus factor of one.** FerroEHR has a single maintainer, no organisation, and no legal entity behind it; the project states this itself in `MAINTAINERS.md` and treats it as a finding rather than a footnote. It is a serious dependency risk on a project that is nonetheless unusually rigorous about disclosing it.
+- **`0.0.x` versioning.** No semver stability promise, and the published crates already run ahead of the in-repo workspace version. Pin exactly and expect churn.
+- **MSRV rises from 1.80 to at least 1.96.**
+- **Dependency footprint grows** (`rust_decimal`, `chumsky`, `logos`, `indexmap`, `roxmltree`, `serde_jcs`, `serde_path_to_error`, and more) against a project whose distinguishing claim is a light single binary with no runtime. Measure the binary before and after each stage; the single-binary promise is about not shipping a JVM or a database server, not about a small dependency tree, but the trade should be observed rather than ignored.
+
+The mitigation for all four is the same and is cheap: the crates are MIT and Apache-2.0, so a fork is always available and never needs permission.
+
+## Licensing
+
+The `openehr-*` crates are `MIT AND Apache-2.0`. `openehr-term` adds `CC-BY-SA-3.0` for the openEHR TERM 3.1.0 XML bundle it embeds. Permissive dependencies compose into an AGPL-3.0-or-later work one way, so adoption is compatible and `anarchie`'s own code licence is unchanged.
+
+The CC-BY-SA-3.0 terminology bundle is a redistribution obligation, and it sits naturally in the existing four-layer split alongside the CKM archetype derivatives already carried at 3.0. Record it in [licensing.md](licensing.md) and keep `reuse lint` green when Stage 2 lands.
+
+## GitEHR
+
+The earlier plan made GitEHR the trigger for extracting an `anarchie` SDK. It is now simpler: GitEHR consumes the same `openehr-*` crates directly. Nothing has to be extracted, published, or version-managed by this project first, and the two products share a model layer without either depending on the other.
+
+The shared conformance obligation survives the change. The first GitEHR integration should still add positive and negative cases proving that the same canonical Composition parses, serialises byte-stably where the profile guarantees it, and validates equivalently in both products.
+
+## Reversal
+
+If FerroEHR becomes unmaintained, diverges from the specification, or takes a direction this project cannot follow, the exit is to fork the crates under their existing permissive licences and continue. That is materially cheaper than the alternative this decision replaces, which was to write and maintain the same model layer from scratch indefinitely.

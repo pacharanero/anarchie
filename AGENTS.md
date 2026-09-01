@@ -5,4 +5,4 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # Agent Instructions
 
-See [agent-instructions.md](agent-instructions.md) - the vendor-neutral source of truth for working in this repo (read-first order, core invariants, workflow, pre-commit checks, and the reusable Rust SDK boundary).
+See [agent-instructions.md](agent-instructions.md) - the vendor-neutral source of truth for working in this repo (read-first order, core invariants, workflow, pre-commit checks, and the SDK boundary).

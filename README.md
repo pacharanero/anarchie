@@ -114,7 +114,7 @@ The only runtime dependency is the system `git`. More channels - Homebrew, Windo
 - [specs/on-disk-format.md](specs/on-disk-format.md) - exact directory and file conventions
 - [specs/versioning-and-git.md](specs/versioning-and-git.md) - mapping contributions/versions onto git
 - [specs/reference-model-coverage.md](specs/reference-model-coverage.md) - which RM types are implemented vs deferred
-- [specs/rust-sdk.md](specs/rust-sdk.md) - the reusable Rust SDK boundary and GitEHR integration goal
+- [specs/rust-sdk.md](specs/rust-sdk.md) - the SDK boundary and the adoption of the published `openehr-*` crates
 - [specs/serialisation-formats.md](specs/serialisation-formats.md) - canonical JSON / XML / FLAT / STRUCTURED / Web Template
 - [specs/query-engine.md](specs/query-engine.md) - how AQL gets executed over flat files
 - [specs/validation.md](specs/validation.md) - RM + template validation strategy
