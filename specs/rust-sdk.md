@@ -72,7 +72,7 @@ Recorded plainly because they are the reason this is a decision rather than a de
 
 - **Bus factor of one.** FerroEHR has a single maintainer, no organisation, and no legal entity behind it; the project states this itself in `MAINTAINERS.md` and treats it as a finding rather than a footnote. It is a serious dependency risk on a project that is nonetheless unusually rigorous about disclosing it.
 - **`0.0.x` versioning.** No semver stability promise, and the published crates already run ahead of the in-repo workspace version. Pin exactly and expect churn.
-- **MSRV rises from 1.80 to at least 1.96.**
+- **MSRV rises from 1.86 to at least 1.96.**
 - **Dependency footprint grows** (`rust_decimal`, `chumsky`, `logos`, `indexmap`, `roxmltree`, `serde_jcs`, `serde_path_to_error`, and more) against a project whose distinguishing claim is a light single binary with no runtime. Measure the binary before and after each stage; the single-binary promise is about not shipping a JVM or a database server, not about a small dependency tree, but the trade should be observed rather than ignored.
 
 The mitigation for all four is the same and is cheap: the crates are MIT and Apache-2.0, so a fork is always available and never needs permission.

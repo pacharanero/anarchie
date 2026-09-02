@@ -34,7 +34,9 @@ Already specified in [on-disk-format.md](on-disk-format.md): RM-faithful JSON wi
 
 The canonical XML form is RM-faithful XML, semantically equivalent to canonical JSON. It matters for one unavoidable reason: **Operational Templates are distributed as XML.** Even if `anarchie`'s own native template form is flattened JSON (see [validation.md](validation.md)), ingesting a real `.opt` exported from Archetype Designer or the ADL Workbench means parsing OPT XML. Beyond OPT ingestion, canonical XML on the wire is an optional, later convenience; canonical JSON is the default for everything.
 
-Implementation note: legacy OPT XML is parsed with the lightweight, MIT-licensed [`quick-xml`](https://github.com/tafia/quick-xml) 0.41.0 parser (MSRV 1.79, compatible with anarchie's Rust 1.80 MSRV). The parser is a pure format adapter over caller-provided text; it does not add a runtime service or alter the canonical store.
+Implementation note: legacy OPT XML is parsed with the lightweight, MIT-licensed [`quick-xml`](https://github.com/tafia/quick-xml) 0.42.0 parser, which sets anarchie's 1.86 MSRV. The parser is a pure format adapter over caller-provided text; it does not add a runtime service or alter the canonical store.
+
+0.42 moved the reader from bytes to `&str` and began reporting entity references as their own events rather than folding them into the surrounding text. Character data is therefore accumulated per element and trimmed once, and an entity the reader hands over separately is resolved explicitly - an OPT carries no DTD, so anything outside the five predefined entities and numeric character references is rejected rather than dropped from a constraint.
 
 ---
 

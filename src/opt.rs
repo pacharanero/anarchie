@@ -23,7 +23,7 @@ use crate::aom::{
     Interval, MultiplicityInterval,
 };
 use quick_xml::events::Event;
-use quick_xml::Reader;
+use quick_xml::{Reader, XmlVersion};
 use serde::{Deserialize, Serialize};
 
 const ADL14_XML_NAMESPACE: &str = "http://schemas.openehr.org/v1";
@@ -151,8 +151,7 @@ struct XmlNode {
 impl XmlNode {
     fn parse(xml: &str) -> Result<Self, OptError> {
         let mut reader = Reader::from_str(xml);
-        reader.config_mut().trim_text(true);
-        let mut stack = Vec::new();
+        let mut stack: Vec<Self> = Vec::new();
         let mut root = None;
         let mut node_count = 0;
 
@@ -188,19 +187,15 @@ impl XmlNode {
                         ));
                     }
                 }
+                // EOL-normalise all character data so a CRLF-saved and an
+                // LF-saved export lower to the same template.
                 Event::Text(text) => {
-                    let text = decode_xml_text(text.as_ref())?;
-                    if let Some(node) = stack.last_mut() {
-                        node.text.push_str(&text);
-                    }
+                    push_text(&mut stack, &unescape_xml(&text.xml10_content())?);
                 }
-                Event::CData(text) => {
-                    let text = std::str::from_utf8(text.as_ref()).map_err(|error| {
-                        OptError::XmlStructure(format!("XML is not UTF-8: {error}"))
-                    })?;
-                    if let Some(node) = stack.last_mut() {
-                        node.text.push_str(text);
-                    }
+                // CDATA is literal by definition, so it is never unescaped.
+                Event::CData(text) => push_text(&mut stack, &text.xml10_content()),
+                Event::GeneralRef(reference) => {
+                    push_text(&mut stack, &resolve_reference(&reference.xml10_content())?);
                 }
                 Event::End(_) => {
                     let node = stack.pop().ok_or_else(|| {
@@ -229,11 +224,10 @@ impl XmlNode {
         let mut attributes = BTreeMap::new();
         for attribute in event.attributes() {
             let attribute = attribute.map_err(|error| OptError::XmlStructure(error.to_string()))?;
-            let key = std::str::from_utf8(attribute.key.as_ref())
-                .map_err(|error| OptError::XmlStructure(format!("invalid XML attribute: {error}")))?
-                .to_string();
-            let value = decode_xml_text(attribute.value.as_ref())?;
-            attributes.insert(key, value);
+            let value = attribute
+                .normalized_value(XmlVersion::Implicit1_0)
+                .map_err(|error| OptError::XmlStructure(format!("invalid XML escape: {error}")))?;
+            attributes.insert(attribute.key.as_ref().to_string(), value.into_owned());
         }
         Ok(Self {
             name: local_name(event.name().as_ref()),
@@ -251,8 +245,14 @@ impl XmlNode {
         self.children.iter().filter(move |child| child.name == name)
     }
 
+    /// The element's character data, trimmed, or `None` when it carries none.
+    ///
+    /// Trimming happens here rather than per text event because the reader
+    /// reports entity references separately, so `a &amp; b` arrives as three
+    /// events whose interior spacing must survive.
     fn required_text(&self) -> Option<String> {
-        (!self.text.is_empty()).then(|| self.text.clone())
+        let text = self.text.trim();
+        (!text.is_empty()).then(|| text.to_string())
     }
 
     fn constraint_type(&self) -> Result<&str, OptError> {
@@ -263,17 +263,31 @@ impl XmlNode {
     }
 }
 
-fn local_name(name: &[u8]) -> String {
-    String::from_utf8_lossy(name)
-        .rsplit(':')
-        .next()
-        .unwrap_or_default()
-        .to_string()
+/// The element or attribute name with any namespace prefix stripped.
+///
+/// XML namespace binding is checked once, at the document root; below it the
+/// lowering matches on local names.
+fn local_name(name: &str) -> String {
+    name.rsplit(':').next().unwrap_or_default().to_string()
 }
 
-fn decode_xml_text(bytes: &[u8]) -> Result<String, OptError> {
-    let value = std::str::from_utf8(bytes)
-        .map_err(|error| OptError::XmlStructure(format!("XML is not UTF-8: {error}")))?;
+/// Append character data to the element currently being read, if any.
+fn push_text(stack: &mut [XmlNode], text: &str) {
+    if let Some(node) = stack.last_mut() {
+        node.text.push_str(text);
+    }
+}
+
+/// Resolve an entity or character reference the reader reported on its own.
+///
+/// An OPT carries no DTD, so only the five predefined entities and numeric
+/// character references are legal. Anything else fails rather than being
+/// silently dropped from a clinical constraint.
+fn resolve_reference(name: &str) -> Result<String, OptError> {
+    unescape_xml(&format!("&{name};"))
+}
+
+fn unescape_xml(value: &str) -> Result<String, OptError> {
     quick_xml::escape::unescape(value)
         .map(|value| value.into_owned())
         .map_err(|error| OptError::XmlStructure(format!("invalid XML escape: {error}")))
@@ -658,6 +672,39 @@ mod tests {
         assert_eq!(quantity.list[0].units, "mm[Hg]");
         assert_eq!(quantity.list[0].magnitude.unwrap().upper, Some(300.0));
         assert_eq!(quantity.list[0].precision.unwrap().upper, Some(1));
+    }
+
+    #[test]
+    fn xml_escapes_and_line_endings_do_not_change_the_lowered_template() {
+        let xml = include_str!("../tests/fixtures/legacy-vital-signs.opt.xml");
+        let baseline = Opt::from_xml(xml).expect("the fixture parses");
+
+        // A CRLF-saved export must lower to the same template as an LF one, so
+        // the stored native JSON does not depend on the exporter's line endings.
+        let crlf = xml.replace('\n', "\r\n");
+        assert_eq!(
+            Opt::from_xml(&crlf).expect("a CRLF export parses"),
+            baseline
+        );
+
+        // Entity references are resolved, not carried through literally.
+        let escaped = xml.replace(
+            "<concept>Legacy vital signs</concept>",
+            "<concept>Legacy &amp; vital signs</concept>",
+        );
+        let opt = Opt::from_xml(&escaped).expect("an escaped export parses");
+        assert_eq!(opt.concept, "Legacy & vital signs");
+
+        // An entity with no definition is rejected, never dropped: an OPT has no
+        // DTD, so there is no reading under which it is safe to ignore.
+        let undefined = xml.replace(
+            "<concept>Legacy vital signs</concept>",
+            "<concept>Legacy &undefined; vital signs</concept>",
+        );
+        assert!(matches!(
+            Opt::from_xml(&undefined),
+            Err(OptError::XmlStructure(message)) if message.contains("invalid XML escape")
+        ));
     }
 
     #[test]

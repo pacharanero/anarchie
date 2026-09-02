@@ -2,7 +2,7 @@
 
 ## Build the binary
 
-`anarchie` is a single Rust crate. With a recent stable toolchain (1.80+):
+`anarchie` is a single Rust crate. With a recent stable toolchain (1.86+):
 
 ```bash
 git clone https://github.com/pacharanero/anarchie
