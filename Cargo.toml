@@ -3,7 +3,7 @@
 name = "anarchie"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.86"
+rust-version = "1.96"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/pacharanero/anarchie"
 authors = ["The anarchie contributors"]
@@ -39,6 +39,9 @@ libc = "0.2.186"
 sha2 = "0.11.0"
 tar = "0.4.46"
 zstd = "0.13.3"
+# The openEHR SDK. AQL 1.1 lexer/parser reimplemented from the official
+# grammar; no ANTLR runtime, no build step. See specs/rust-sdk.md.
+openehr-query = "0.0.56"
 
 [dev-dependencies]
 assert_cmd = "2.1.2"

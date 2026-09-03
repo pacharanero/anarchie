@@ -174,3 +174,13 @@ anarchie's decision to ingest flattened OPT rather than parse ADL is architectur
 | openEHR spec in alternative formats? | No - ANTLR v4 `.g4` only. Any other format requires translation (a derivative). |
 | More mature Rust ANTLR runtimes? | One older unmaintained one (`IGGGIT/antlr-rust`). No mature, multi-maintainer Rust ANTLR runtime exists. |
 | Should we adopt ANTLR? | Not yet. Vendor the `.g4`, keep hand-written parser, add conformance harness. Revisit when you hit a wall. |
+
+---
+
+## Outcome (2026-09)
+
+anarchie adopted a generated-in-spirit parser, by a route this evaluation did not consider: [`openehr-query`](https://crates.io/crates/openehr-query), part of the [FerroEHR](https://github.com/rubentalstra/FerroEHR) crate set, is a *hand-written* Rust lexer and parser reimplemented from the official `.g4` grammar, published to crates.io under MIT.
+
+That satisfies the constraints this document set out without meeting any of the three conditions it named. There is no ANTLR runtime to assess for maturity, no Java tool in the build, and no generated code to vendor - so the "what not to do" list is untouched. What changed is simply that someone else did the work and published it, which made "keep the hand-written parser" the more expensive option rather than the cheaper one.
+
+The analysis above stands; only its conclusion is superseded. The conformance harness it recommended was built, and it is what made the swap safe to make: the corpus verified that the two queries anarchie deliberately refuses are still refused, now by the lowering step rather than by a parse failure. See [rust-sdk.md](../specs/rust-sdk.md).

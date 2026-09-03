@@ -33,11 +33,15 @@ The CDR layers (`store`, `query`, `serve`, `cli`) are adapters above this line. 
 
 Each stage is independently shippable and independently revertable. Nothing later is a prerequisite for anything earlier being useful.
 
-### Stage 1 - AQL parsing (`openehr-query`)
+### Stage 1 - AQL parsing (`openehr-query`) - done
 
-Replace `src/query/aql/{lexer,ast,parser}.rs` with `openehr-query`, adapting its AST to the existing query plan. The crate is parser-only by design and depends on `logos`, `chumsky`, and `thiserror` alone. `src/query/execute.rs` and `src/query/index.rs` are untouched: FerroEHR's own executor compiles to PostgreSQL SQL and is not a crate, so the embedded SQLite path stays ours.
+`src/query/aql/{lexer,parser}.rs` are replaced by `openehr-query` 0.0.56 plus `src/query/aql/lower.rs`. `src/query/execute.rs` and `src/query/index.rs` are untouched: FerroEHR's own executor compiles to PostgreSQL SQL and is not a crate, so the embedded SQLite path stays ours.
 
-This is the lowest-risk stage and it proves the dependency mechanics before anything load-bearing moves. It should land first for that reason as much as for the conformance gain.
+`ast.rs` was **kept**, against the original sketch. The SDK type is a syntax tree spanning all of AQL 1.1; `ast.rs` is the executor's input contract, covering only what the index can answer. Collapsing the two would have pushed grammar-shaped types through the query planner and made every unsupported construct an executor concern. Keeping them separate puts the whole narrowing in one reviewable file and leaves `parse()`'s signature unchanged, so the executor, stored queries, and the conformance corpus needed no edit.
+
+The lowering is fail-closed in the same sense as the OPT importer: valid AQL that anarchie cannot execute is refused by naming the construct, never silently narrowed to something runnable. The conformance corpus is what makes that verifiable, and it caught nothing on the swap - the two queries anarchie deliberately refuses are still refused, now at lowering rather than at parse.
+
+Measured cost: **14 new transitive crates and +1.2 MiB on the release binary (8.8 -> 10.0 MiB, +13%)**, against 646 lines of hand-written lexer and parser removed. It also sets the project's 1.96 MSRV.
 
 ### Stage 2 - Reference Model (`openehr-base`, `openehr-rm`, transitively `openehr-term`)
 
@@ -72,8 +76,8 @@ Recorded plainly because they are the reason this is a decision rather than a de
 
 - **Bus factor of one.** FerroEHR has a single maintainer, no organisation, and no legal entity behind it; the project states this itself in `MAINTAINERS.md` and treats it as a finding rather than a footnote. It is a serious dependency risk on a project that is nonetheless unusually rigorous about disclosing it.
 - **`0.0.x` versioning.** No semver stability promise, and the published crates already run ahead of the in-repo workspace version. Pin exactly and expect churn.
-- **MSRV rises from 1.86 to at least 1.96.**
-- **Dependency footprint grows** (`rust_decimal`, `chumsky`, `logos`, `indexmap`, `roxmltree`, `serde_jcs`, `serde_path_to_error`, and more) against a project whose distinguishing claim is a light single binary with no runtime. Measure the binary before and after each stage; the single-binary promise is about not shipping a JVM or a database server, not about a small dependency tree, but the trade should be observed rather than ignored.
+- **MSRV rose to 1.96** at Stage 1, set by the crates themselves.
+- **Dependency footprint grows** (`rust_decimal`, `chumsky`, `logos`, `indexmap`, `roxmltree`, `serde_jcs`, `serde_path_to_error`, `stacker`, and more) against a project whose distinguishing claim is a light single binary with no runtime. Stage 1 alone cost 14 crates and +13% binary size. Measure before and after each stage; the single-binary promise is about not shipping a JVM or a database server, not about a small dependency tree, but the trade should be observed rather than ignored.
 
 The mitigation for all four is the same and is cheap: the crates are MIT and Apache-2.0, so a fork is always available and never needs permission.
 
