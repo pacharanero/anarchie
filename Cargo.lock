@@ -710,9 +710,9 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "openehr-query"
-version = "0.0.56"
+version = "0.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7504d2db712339cc7d5abfa355489bb05f3196eaadf9dd1a675af4295187d7b1"
+checksum = "79464c97d7df8cbe07b63ea7bcf869db4ac961b50866d0c65e652aa8ffe0aa3d"
 dependencies = [
  "chumsky",
  "logos",

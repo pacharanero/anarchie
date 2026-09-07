@@ -41,7 +41,7 @@ tar = "0.4.46"
 zstd = "0.13.3"
 # The openEHR SDK. AQL 1.1 lexer/parser reimplemented from the official
 # grammar; no ANTLR runtime, no build step. See specs/rust-sdk.md.
-openehr-query = "0.0.56"
+openehr-query = "0.0.58"
 
 [dev-dependencies]
 assert_cmd = "2.1.2"
