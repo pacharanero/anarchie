@@ -14,6 +14,14 @@ updates:
       semver-patch-days: 3
       semver-minor-days: 7
       semver-major-days: 14
+    ignore:
+      # openehr-query relicensed from MIT to BUSL-1.1 after 0.0.56 (0.0.58 was
+      # Apache-2.0; 0.0.60 onwards is BUSL). BUSL-1.1 restricts the field of
+      # use, which AGPL-3.0-or-later forbids imposing on downstream recipients,
+      # so a routine bump would make anarchie undistributable. 0.0.56 stays
+      # pinned under its irrevocable MIT grant. Revisit only on a licence
+      # change upstream or a deliberate decision here; see specs/rust-sdk.md.
+      - dependency-name: "openehr-query"
     groups:
       routine-minor-and-patch:
         applies-to: version-updates

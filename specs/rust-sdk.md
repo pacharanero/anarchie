@@ -53,11 +53,11 @@ Replace `src/rm/` and the type-level parts of `src/validate/rm.rs`. This is the 
 
 Retire the hand-rolled legacy OPT XML importer in `src/opt.rs` in favour of the crate's `opt14` model and JSON codec, then take `flat` and `webtemplate` to deliver the **Renderer formats** and **Explorer interoperability** roadmap items without writing them.
 
-Blocked on an upstream change: see [Upstream dependencies](#upstream-dependencies) below.
+**Blocked on licence, not only on features.** `openehr-its` is now `BUSL-1.1 AND Apache-2.0`, so the feature-granularity request below is necessary but no longer sufficient. Stage 3 cannot proceed unless the crate returns to a permissive licence, anarchie relicenses (which would abandon the AGPL position), or the work is written here instead.
 
 ### Stage 4 - Archetype model (`openehr-am`, `openehr-adl`)
 
-Only when ADL2/OPT2 becomes real work rather than a roadmap line.
+Only when ADL2/OPT2 becomes real work rather than a roadmap line. `openehr-am` is Apache-2.0 and available; `openehr-adl` is BUSL-1.1 and is not.
 
 ### Not adopted
 
@@ -79,13 +79,26 @@ Recorded plainly because they are the reason this is a decision rather than a de
 - **MSRV rose to 1.96** at Stage 1, set by the crates themselves.
 - **Dependency footprint grows** (`rust_decimal`, `chumsky`, `logos`, `indexmap`, `roxmltree`, `serde_jcs`, `serde_path_to_error`, `stacker`, and more) against a project whose distinguishing claim is a light single binary with no runtime. Stage 1 alone cost 14 crates and +13% binary size. Measure before and after each stage; the single-binary promise is about not shipping a JVM or a database server, not about a small dependency tree, but the trade should be observed rather than ignored.
 
-The mitigation for all four is the same and is cheap: the crates are MIT and Apache-2.0, so a fork is always available and never needs permission.
+The mitigation for the first three is a fork from the last permissive version, which needs nobody's permission. The fourth risk - relicensing - has now materialised, and is recorded above rather than here because it changed the plan rather than merely threatening it.
 
 ## Licensing
 
-The `openehr-*` crates are `MIT AND Apache-2.0`. `openehr-term` adds `CC-BY-SA-3.0` for the openEHR TERM 3.1.0 XML bundle it embeds. Permissive dependencies compose into an AGPL-3.0-or-later work one way, so adoption is compatible and `anarchie`'s own code licence is unchanged.
+**The crate set was relicensed away from MIT after 0.0.56, and the result is a split that decides which stages remain open.** Everything at or below 0.0.56 is MIT; 0.0.58 moved to Apache-2.0; from 0.0.60 (2026-09-04) some crates became BUSL-1.1 under Vernum Projecten B.V. The repository itself is now BUSL-1.1.
 
-The CC-BY-SA-3.0 terminology bundle is a redistribution obligation, and it sits naturally in the existing four-layer split alongside the CKM archetype derivatives already carried at 3.0. Record it in [licensing.md](licensing.md) and keep `reuse lint` green when Stage 2 lands.
+| Crate | Licence at 0.0.67 | Usable by anarchie |
+|---|---|---|
+| `openehr-base`, `openehr-rm`, `openehr-am`, `openehr-lang` | Apache-2.0 | Yes |
+| `openehr-term` | `Apache-2.0 AND CC-BY-SA-3.0` | Yes, with the data attribution |
+| `openehr-query`, `openehr-adl` | BUSL-1.1 | **No** |
+| `openehr-its` | `BUSL-1.1 AND Apache-2.0` | **No** - `AND` means both apply |
+
+BUSL-1.1 is source-available, not open source. Its Additional Use Grant permits production use for non-commercial purposes only, forbids offering the work as a hosted, managed, or embedded service that stores or queries health data for third parties, and forbids distributing it for a fee. Each version converts to Apache-2.0 four years after publication.
+
+That is incompatible with this project in two independent ways. AGPL-3.0-or-later forbids imposing further restrictions on downstream recipients, and a field-of-use restriction is exactly such a restriction; and anarchie ships prebuilt binaries and publishes to crates.io, which the grant limits directly. A BUSL crate therefore cannot enter the dependency graph while anarchie is AGPL.
+
+Apache-2.0 composes into AGPL-3.0-or-later one way, so the Stage 2 crates remain available and the main prize is untouched. The `CC-BY-SA-3.0` terminology bundle in `openehr-term` is a redistribution obligation that sits naturally in the existing four-layer split alongside the CKM archetype derivatives already carried at 3.0; record it in [licensing.md](licensing.md) and keep `reuse lint` green when Stage 2 lands.
+
+`openehr-query` stays pinned at 0.0.56 under its irrevocable MIT grant, and Dependabot is configured to ignore it so a bump cannot land by routine merge. The pin is safe indefinitely but it is frozen: upstream parser fixes no longer reach us.
 
 ## GitEHR
 
@@ -95,4 +108,6 @@ The shared conformance obligation survives the change. The first GitEHR integrat
 
 ## Reversal
 
-If FerroEHR becomes unmaintained, diverges from the specification, or takes a direction this project cannot follow, the exit is to fork the crates under their existing permissive licences and continue. That is materially cheaper than the alternative this decision replaces, which was to write and maintain the same model layer from scratch indefinitely.
+If FerroEHR becomes unmaintained, diverges from the specification, or takes a direction this project cannot follow, the exit is to fork from the last permissively licensed version and continue. For the Apache-2.0 crates that is the current release; for the BUSL crates it is 0.0.56, the last MIT one. Those grants are irrevocable and cannot be withdrawn retrospectively, so the exit exists in every case - but for a BUSL crate it starts from a frozen 2026-09-02 snapshot rather than from upstream head.
+
+The relicensing is the reason this section is no longer hypothetical. It also dates the risk register below: the "bus factor of one, no legal entity" reading was accurate when written and `MAINTAINERS.md` still asserts it, but a BUSL licensor now exists. Re-read the project's own governance documents before relying on them.
