@@ -63,6 +63,7 @@ nav:
   - Why Build This?:
       - Why anarchie?: why/why-anarchie.md
       - Why git?: why/why-git.md
+      - Disambiguating the standards soup: why/standards-landscape.md
   - Commands:
       - anarchie info: commands/info.md
       - anarchie canonicalise: commands/canonicalise.md
