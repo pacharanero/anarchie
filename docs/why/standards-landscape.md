@@ -54,27 +54,24 @@ clinical record looks like structurally. This is where openEHR, 13606, CIMI,
 RIM, and FHIR actually relate to each other, as opposed to who's in which
 committee.
 
-```text
-                 1990s-2000s
-   EN13606 (CEN, Dipak Kalra et al.) ──┐
-                                        │  openEHR donated its AOM/ADL
-   openEHR RM + AOM/ADL1 ───────────────┼──▶ EN/ISO 13606-2 (archetype
-                                        │     model), as a formal annexe
-   HL7 v3 / RIM ────────────┐          │
-                             │          │
-                             ▼          ▼
-                     CIMI (2013-2018: an attempt at ONE
-                     shared clinical information model
-                     to sit under v2/v3/CDA/FHIR alike)
-                             │
-                   stalled as a separate deliverable;
-                   its modelling work was absorbed into
-                             │
-                             ▼
-                     FHIR's own Resource/profile model
-                     (2014-)         +
-                     openEHR RM/AOM2 continues independently,
-                     revised into ISO 13606-2:2019 (AOM 2.0.6)
+```mermaid
+flowchart TD
+    EN13606["EN13606<br/>(CEN, Dipak Kalra et al., 1990s-2000s)"]
+    RM1["openEHR RM + AOM/ADL1<br/>(mid-2000s-)"]
+    RIM["HL7 v3 / RIM<br/>(1990s-2000s)"]
+    ISO13606_2["EN/ISO 13606-2<br/>archetype model<br/>(openEHR AOM donated as an informative annexe)"]
+    CIMI["CIMI<br/>(2013-2018)<br/>one shared clinical model<br/>under v2/v3/CDA/FHIR alike"]
+    FHIR["FHIR Resource/profile model<br/>(2014-)"]
+    AOM2["openEHR RM/AOM2<br/>continues independently"]
+    ISO13606_2019["ISO 13606-2:2019<br/>incorporates AOM 2.0.6"]
+
+    EN13606 --> ISO13606_2
+    RM1 -- "openEHR donated its AOM/ADL" --> ISO13606_2
+    RM1 --> CIMI
+    RIM --> CIMI
+    CIMI -- "stalled as a separate deliverable;<br/>modelling work absorbed into" --> FHIR
+    RM1 --> AOM2
+    AOM2 -- "revised into" --> ISO13606_2019
 ```
 
 - **openEHR's Reference Model (RM)** and **Archetype Object Model
