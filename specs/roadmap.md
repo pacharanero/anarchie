@@ -63,6 +63,10 @@ Integrations with external systems and open research questions, deliberately lef
 
 Conformance with the shared engineering standards in `~/code/house-style` - the conventions every Baw Medical repo (`sct`, `dsc`, `gitehr`) follows. Only remaining or partial work is listed here. See also [HOUSE-STYLE-AUDIT.md](../HOUSE-STYLE-AUDIT.md) for the point-in-time audit these items trace to.
 
+### CI toolchain
+
+- [ ] **Replace `dtolnay/rust-toolchain` with plain rustup.** Quick, zero-risk, do first: `dtolnay/rust-toolchain` has no versioned releases - its `v1` tag is a permanently floating alias the maintainer force-moves to track `master`, so SHA-pinning it (the previous house-style convention) only buys time until it drifts again and trips zizmor's `ref-version-mismatch` check. Documented upstream behaviour, not a bug: [dtolnay/rust-toolchain#180](https://github.com/dtolnay/rust-toolchain/issues/180), open since March 2026, unaddressed. New house style (`ci.md`, "Rust toolchain setup"): a committed `rust-toolchain.toml` plus `rustup toolchain install --no-self-update` in CI, no Action at all. Worked reference: `pacharanero/clincalc` commit `9f00f57`. Two call sites currently use a stale SHA pinned `# stable` comment (`ci.yml`, `publish-crates.yml`).
+
 ### CLI shape
 
 - [ ] *(Lower priority)* a machine-discoverable `--schema` / fillable-template surface, sharing one schema with the MCP tools.
