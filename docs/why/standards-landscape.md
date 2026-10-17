@@ -12,12 +12,12 @@ a longer treatment of a topic, this page links out rather than repeating it.
 
 !!! note "Where this came from"
     Prompted directly by a real [openEHR Discourse thread from
-    2025](https://discourse.openehr.org/t/iso-13606-revision/6101) in which
-    experienced community members - people who wrote some of these standards
-    - spent 39 posts untangling TC251, 13606, CEN, FHIR, CIMI, ADL2, JIC
-    membership, and OMOP, and still ended with open questions. If it is
-    confusing to the authors, it is not a personal failing to find it
-    confusing as a newcomer.
+    2025](https://discourse.openehr.org/t/iso-13606-revision/6101), a good
+    illustration of just how much institutional history (TC251, 13606, CEN,
+    FHIR, CIMI, ADL2, JIC membership, OMOP) can be packed into one
+    conversation among people who have been close to these standards for
+    decades. Reading it cold needs more context than the thread itself
+    supplies - this page is that context.
 
 ## Who governs what
 
