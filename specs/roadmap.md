@@ -36,6 +36,7 @@ Adopt the published [FerroEHR](https://github.com/rubentalstra/FerroEHR) `openeh
 ### Query
 
 - [ ] **DuckDB/Parquet analytics path** alongside the SQLite path-index, for column-oriented aggregates. The SQLite path already covers the MVP aggregates (`COUNT`/`MIN`/`MAX`/`SUM`/`AVG`); the open question is how much of AQL a DuckDB-over-JSON approach handles before a bespoke engine is unavoidable. Additive, isolated to the analytics tier ([query-engine.md](query-engine.md)).
+- [ ] **Apache Ossie (incubating) as a possible dashboard/metrics semantic layer (distant future, speculative).** [Ossie](https://ossie.apache.org/) (formerly Open Semantic Interchange) is a YAML standard for declaring named metrics/dimensions/relationships consistently across BI tools and AI agents - a warehouse-reporting concern, not a clinical data model, and categorically unlike openEHR RM or FHIR (no event granularity, no versioning, no write-time validation; it assumes clean fact/dimension tables already exist). If the **OMOP derived view** above is ever built, Ossie is a plausible candidate for the layer *on top of* that OMOP extract, giving dashboards and LLM agents one consistent definition of derived metrics (e.g. 30-day readmission rate) instead of redefining them per tool. Strictly downstream of, and dependent on, the OMOP item; not a reason to build OMOP sooner.
 
 ### Integration and convergence (speculative)
 
